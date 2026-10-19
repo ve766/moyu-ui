@@ -29,7 +29,7 @@
 ## 使用方式
 
 ```bash
-git clone https://github.com/ve766/墨玉ui.git
+git clone https://github.com/ve766/moyu-ui.git
 ```
 
 打开 `html-demos/` 下任意 `.html` 文件即可预览界面演示。
