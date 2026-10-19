@@ -1,0 +1,90 @@
+{
+  "src": "F:\\xiaoling\\html-demos\\_shots\\工具箱验证_审美amber.html",
+  "url": "file:///F:/xiaoling/html-demos/_shots/%E5%B7%A5%E5%85%B7%E7%AE%B1%E9%AA%8C%E8%AF%81_%E5%AE%A1%E7%BE%8Eamber.html",
+  "outdir": "F:\\xiaoling\\html-demos\\_shots\\_shots",
+  "include": [
+    "lint",
+    "screenshots",
+    "structure"
+  ],
+  "shots": {
+    "desktop": {
+      "screenshot": "F:\\xiaoling\\html-demos\\_shots\\_shots\\工具箱验证_审美amber_desktop.jpg",
+      "screenshotBytes": 139761,
+      "truncated": false,
+      "structure": {
+        "title": "工具箱复现台 · AI 交互与可视化创新设计 v1.0",
+        "firstH1": "",
+        "viewport": {
+          "w": 1440,
+          "h": 900
+        },
+        "fullpage": {
+          "w": 1440,
+          "h": 2351
+        },
+        "counts": {
+          "section": 2,
+          "h1": 0,
+          "h2": 1,
+          "img": 0,
+          "canvas": 0,
+          "svg": 0,
+          "links": 0,
+          "buttons": 70
+        }
+      },
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "horizontalOverflow": [],
+      "resourceErrors": [],
+      "reportSource": "cdp"
+    }
+  },
+  "engine": "chrome_cli",
+  "chromiumExec": "C:\\Users\\Hasee/AppData/Local/ms-playwright\\chromium_headless_shell-1248\\chrome-headless-shell-win64\\chrome-headless-shell.exe",
+  "engineDegraded": true,
+  "engineDegradedReason": "playwright 未装",
+  "elapsedSec": 6.23,
+  "schemaVersion": 2,
+  "status": "pass",
+  "engineInfo": {
+    "name": "chrome_cli",
+    "degraded": true,
+    "degradedReasons": [
+      "playwright 未装"
+    ]
+  },
+  "input": {
+    "original": "F:\\xiaoling\\html-demos\\_shots\\工具箱验证_审美amber.html",
+    "resolvedPath": "F:\\xiaoling\\html-demos\\_shots\\工具箱验证_审美amber.html",
+    "baseUrl": "file:///F:/xiaoling/html-demos/_shots/%E5%B7%A5%E5%85%B7%E7%AE%B1%E9%AA%8C%E8%AF%81_%E5%AE%A1%E7%BE%8Eamber.html",
+    "protocol": "file",
+    "cwd": "F:\\xiaoling\\html-demos",
+    "mediaMode": {
+      "reducedMotion": true
+    }
+  },
+  "artifacts": {
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "F:\\xiaoling\\html-demos\\_shots\\_shots\\工具箱验证_审美amber_desktop.jpg",
+        "size": 139761,
+        "visualCoverage": {
+          "complete": true,
+          "reason": null
+        }
+      }
+    ]
+  },
+  "summary": {
+    "blocker": 0,
+    "error": 0,
+    "warning": 0,
+    "info": 0
+  },
+  "findings": [],
+  "prioritizedActions": [],
+  "reportPath": "F:\\xiaoling\\html-demos\\_shots\\_shots\\report.json"
+}

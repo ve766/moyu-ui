@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>星核创作中枢 · Orbital Studio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23E6E6EA' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23C9A45C'/%3E%3Ccircle cx='24' cy='9' r='2.5' fill='%237CAE8A'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --font:'Noto Sans SC',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+  --display:'Noto Serif SC','Songti SC',serif;
+  --tick:cubic-bezier(.34,1.35,.6,1);
+  --abg:#0B0E13; --asurf:#131821; --asurf-2:#1A212C;
+  --aline:rgba(230,230,234,.10); --aline-2:rgba(230,230,234,.20);
+  --aink:#E6E6EA; --amut:#9AA0AB; --afaint:#5A616D;
+  --gold:#C9A45C; --gold-2:#E5C98F;
+  /* 时间光环境变量 */
+  --sky-1:#0B0E13; --sky-2:#131821; --sky-a:0;
+  --core-h:44; --core-s:62%; --core-l:66%;
+  --sh-x:0; --sh-y:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--abg);color:var(--aink);font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh}
+::selection{background:var(--gold);color:#0B0E13}
+button{font-family:inherit;color:inherit}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+
+/* 顶栏 */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--aline)}
+.topbar .wrap{display:flex;align-items:center;gap:12px;height:58px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-family:var(--display);font-size:15px}
+.logo .ls{position:relative;width:26px;height:26px;flex:none}
+.logo .ls i{position:absolute;border-radius:50%}
+.logo .ls .c{inset:8px;background:var(--gold);box-shadow:0 0 10px rgba(201,164,92,.7)}
+.logo .ls .p{width:6px;height:6px;background:var(--amut);top:1px;right:2px}
+.tb-tag{margin-left:auto;font-size:10.5px;color:var(--amut);border:1px solid var(--aline);border-radius:999px;padding:4px 12px}
+
+/* Hero */
+.hero{padding:44px 0 10px;text-align:center}
+.hero .eyebrow{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.24em;color:var(--gold-2)}
+.hero h1{font-family:var(--display);font-size:clamp(27px,4.4vw,40px);font-weight:900;line-height:1.2;margin:12px 0 8px}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero .sub{max-width:660px;margin:0 auto;color:var(--amut);font-size:13.5px}
+.hero .concepts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.hero .concepts span{font-size:10.5px;color:var(--amut);border:1px solid var(--aline);border-radius:999px;padding:4px 12px}
+.hero .concepts span b{color:var(--gold-2);font-weight:600}
+
+/* 舞台区 */
+.stage-wrap{margin-top:22px;border:1px solid var(--aline);border-radius:20px;overflow:hidden;background:var(--asurf);display:grid;grid-template-columns:1fr}
+@media (min-width:900px){.stage-wrap{grid-template-columns:1fr 300px}}
+/* 轨道舞台 */
+.stage{position:relative;min-height:520px;overflow:hidden;background:linear-gradient(180deg,var(--sky-1),var(--sky-2))}
+@media (min-width:900px){.stage{min-height:600px}}
+#coreCanvas{position:absolute;inset:0;width:100%;height:100%}
+.stage .sky-dust{position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(420px 240px at 72% 18%, rgba(201,164,92,.08), transparent 65%),
+  radial-gradient(300px 200px at 22% 76%, rgba(124,174,138,.07), transparent 60%)}
+.stage-tip{position:absolute;left:14px;top:12px;font-size:10px;letter-spacing:.14em;color:var(--afaint)}
+.stage-clock{position:absolute;right:16px;top:12px;font-size:11px;color:var(--amut);text-align:right;line-height:1.5}
+.stage-clock b{color:var(--gold-2);font-size:15px;font-family:var(--display)}
+.stage-clock span{display:block;font-size:9px;color:var(--afaint)}
+/* 轨道 */
+.orbit{position:absolute;left:50%;top:50%;width:0;height:0;animation:spin var(--sp,90s) linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.orbit .ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:calc(var(--r)*2);height:calc(var(--r)*2);border:1px solid var(--aline-2);border-radius:50%}
+.orbit .ring::after{content:'';position:absolute;left:-1px;top:50%;width:3px;height:3px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px rgba(201,164,92,.8)}
+/* 行星 */
+.pl-wrap{position:absolute;left:50%;top:50%;width:0;height:0;transform:translateX(var(--r));z-index:5;transition:transform .7s var(--tick)}
+.planet{position:absolute;left:calc(var(--ps)/-2);top:calc(var(--ps)/-2);width:var(--ps);height:var(--ps);border-radius:50%;cursor:pointer;animation:spin var(--sp,90s) linear infinite reverse}
+.planet .mat{position:absolute;inset:0;border-radius:50%;display:block}
+.planet .halo{position:absolute;inset:-16%;border-radius:50%;opacity:.55;pointer-events:none;transition:opacity .3s}
+.planet:hover .halo{opacity:1}
+.planet .tag{position:absolute;left:50%;top:calc(100% + 10px);transform:translateX(-50%);font-size:10px;letter-spacing:.12em;color:var(--amut);white-space:nowrap;text-align:center}
+.planet.on .tag,.planet:hover .tag{color:var(--gold-2)}
+.planet .pri{position:absolute;right:-6px;top:-6px;width:14px;height:14px;border-radius:50%;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;background:var(--asurf-2);border:1px solid var(--aline-2);color:var(--amut)}
+.planet .pri.hi{color:#0B0E13;background:var(--gold);border-color:var(--gold)}
+/* 材质：作品库银灰岩 */
+.mat-works{background:radial-gradient(circle at 32% 30%,#F0F2F5,#9AA4B0 58%,#4C5560);box-shadow:inset -3px -5px 12px rgba(0,0,0,.35),0 6px 16px rgba(0,0,0,.4)}
+.mat-works+.halo{background:radial-gradient(circle,rgba(230,230,234,.5),transparent 70%)}
+/* 创作台熔金 */
+.mat-studio{background:radial-gradient(circle at 34% 30%,#FFE8B0,#E5A93F 55%,#8A5A14);box-shadow:inset -3px -5px 12px rgba(90,45,0,.45),0 6px 16px rgba(201,164,92,.35)}
+.mat-studio+.halo{background:radial-gradient(circle,rgba(229,201,143,.5),transparent 70%)}
+/* 选题池琉璃 */
+.mat-ideas{background:radial-gradient(circle at 30% 28%,#DFF3F5,#6FB4BE 55%,#2C5F6B);box-shadow:inset 2px 3px 8px rgba(255,255,255,.4),inset -3px -5px 10px rgba(0,40,50,.35),0 6px 14px rgba(111,180,190,.3)}
+.mat-ideas+.halo{background:radial-gradient(circle,rgba(151,215,224,.5),transparent 70%)}
+/* 日历表冰晶 */
+.mat-cal{background:radial-gradient(circle at 34% 30%,#F4FBFF,#9ECFE8 55%,#4A7FA5);box-shadow:inset 2px 3px 8px rgba(255,255,255,.55),inset -3px -5px 10px rgba(0,50,90,.3),0 6px 14px rgba(158,207,232,.3)}
+.mat-cal+.halo{background:radial-gradient(circle,rgba(190,228,248,.5),transparent 70%)}
+/* 方法库墨玉 */
+.mat-methods{background:radial-gradient(circle at 32% 28%,#B9C4C4,#5E7B78 55%,#243A36);box-shadow:inset -3px -5px 12px rgba(0,30,25,.45),0 6px 16px rgba(0,0,0,.4)}
+.mat-methods+.halo{background:radial-gradient(circle,rgba(150,190,180,.45),transparent 70%)}
+/* 行星状态 */
+.planet .mat::after{content:'';position:absolute;inset:0;border-radius:50%;box-shadow:var(--sh-x) var(--sh-y) 18px rgba(0,0,0,.35);transition:box-shadow .6s}
+/* 数据台 */
+.dock{border-left:1px solid var(--aline);background:var(--asurf);padding:16px;display:flex;flex-direction:column;gap:12px}
+@media (max-width:899px){.dock{border-left:0;border-top:1px solid var(--aline)}}
+.dock .d-state{font-size:10px;letter-spacing:.16em;color:var(--afaint)}
+.dock .d-core{display:flex;align-items:center;gap:10px;border:1px solid var(--aline);border-radius:12px;padding:11px 12px;background:var(--asurf-2)}
+.dock .d-core .dot{width:15px;height:15px;border-radius:50%;background:hsl(var(--core-h),var(--core-s),var(--core-l));box-shadow:0 0 12px hsl(var(--core-h),var(--core-s),var(--core-l)/.6);flex:none;transition:all .4s}
+.dock .d-core b{font-size:13px;font-family:var(--display)}
+.dock .d-core span{display:block;font-size:10px;color:var(--amut);line-height:1.5}
+.dock .d-plist{display:flex;flex-direction:column;gap:5px}
+.dock .d-row{display:flex;align-items:center;gap:8px;border:1px solid var(--aline);border-radius:10px;padding:8px 10px;font-size:11.5px;cursor:pointer;transition:all .2s;background:var(--asurf)}
+.dock .d-row:hover{border-color:var(--aline-2)}
+.dock .d-row.on{background:var(--asurf-2);border-color:rgba(201,164,92,.5)}
+.dock .d-row .pdot{width:11px;height:11px;border-radius:50%;flex:none}
+.dock .d-row b{font-weight:600;color:var(--aink)}
+.dock .d-row .lane{margin-left:auto;font-size:9px;color:var(--afaint);letter-spacing:.06em}
+.dock .d-row .lane.hi{color:var(--gold-2)}
+/* 模块数据卡 */
+.d-mod{border:1px solid var(--aline);border-radius:14px;padding:13px;background:var(--asurf-2);display:none}
+.d-mod.open{display:block}
+.d-mod h5{font-size:13px;font-family:var(--display);display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.d-mod h5 i{width:12px;height:12px;border-radius:50%;flex:none;display:block}
+.d-mod .gauge{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.d-mod .gauge svg{width:64px;height:64px;flex:none;transform:rotate(-90deg)}
+.d-mod .gauge .gt b{font-size:17px;font-family:var(--display);color:var(--gold-2);display:block}
+.d-mod .gauge .gt span{font-size:8.5px;color:var(--afaint);letter-spacing:.08em}
+.d-mod .d-items{list-style:none}
+.d-mod .d-items li{font-size:10.5px;color:var(--amut);padding:6px 0;border-bottom:1px dashed var(--aline);display:flex;gap:7px;align-items:baseline;line-height:1.45}
+.d-mod .d-items li:last-child{border-bottom:0}
+.d-mod .d-items li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);flex:none;align-self:center}
+.d-mod .lane-ctl{margin-top:10px;display:flex;gap:5px}
+.d-mod .lane-ctl button{flex:1;border:1px solid var(--aline);background:transparent;color:var(--amut);font-size:10px;border-radius:8px;padding:6px 0;cursor:pointer;transition:all .2s}
+.d-mod .lane-ctl button:hover{color:var(--aink);border-color:var(--aline-2)}
+.d-mod .lane-ctl button.on{background:var(--gold);color:#0B0E13;border-color:var(--gold);font-weight:700}
+/* 控制条 */
+.ctl-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--aline);background:var(--asurf-2)}
+.ctl-bar .cl{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--amut)}
+.ctl-bar input[type=range]{width:180px;accent-color:var(--gold)}
+.ctl-bar .btn{border:0;border-radius:9px;padding:7px 14px;font-size:11.5px;font-weight:700;cursor:pointer;background:var(--gold);color:#0B0E13}
+.ctl-bar .btn.ghost{background:transparent;border:1px solid var(--aline-2);color:var(--amut);font-weight:500}
+.ctl-bar .btn.ghost:hover{border-color:var(--gold);color:var(--gold-2)}
+.ctl-bar .cl-now{margin-left:auto;font-size:10px;color:var(--afaint);letter-spacing:.06em}
+
+/* 概念卡 */
+.concepts-card{margin-top:20px;border:1px solid var(--aline);border-radius:16px;background:var(--asurf);padding:18px}
+.concepts-card h4{font-family:var(--display);font-size:15px;margin-bottom:4px}
+.concepts-card .cc-sub{font-size:11px;color:var(--afaint);margin-bottom:12px}
+.cc-grid{display:grid;grid-template-columns:1fr;gap:8px}
+@media (min-width:760px){.cc-grid{grid-template-columns:repeat(2,1fr)}}
+.cc{border:1px solid var(--aline);border-radius:10px;padding:10px 12px;background:var(--asurf-2)}
+.cc b{font-size:12px;display:block;margin-bottom:4px;color:var(--gold-2)}
+.cc p{font-size:11px;color:var(--amut);line-height:1.6}
+.cc .old{font-size:9.5px;color:var(--afaint);text-decoration:line-through;margin-right:6px}
+.cc .new{font-size:9.5px;color:var(--gold-2);font-weight:700}
+
+footer{border-top:1px solid var(--aline);padding:22px 0 36px;margin-top:8px}
+footer p{font-size:11px;color:var(--amut);line-height:1.8}
+footer .src{font-size:9.5px;color:var(--afaint);margin-top:4px}
+@media (prefers-reduced-motion: reduce){
+  .orbit,.planet{animation:none}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="ls"><i class="c"></i><i class="p"></i></span>星核创作中枢 <span style="font-size:10px;color:var(--afaint);font-weight:500;letter-spacing:.1em">ORBITAL STUDIO</span></div>
+    <span class="tb-tag">创新迭代 · 由 Xuan子 光球语言发展而来</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">ORBIT · LIGHT · TIME · ACTION</span>
+    <h1>创作中枢，是一颗<em>会呼吸的星核</em></h1>
+    <p class="sub">不再用侧边栏堆功能——五个模块像行星一样绕光核运行：<b>位置就是优先级</b>，<b>光就是状态</b>，<b>时刻就是氛围</b>，点行星展开数据光环，拖到不同轨道即调整优先级。</p>
+    <div class="concepts">
+      <span><b>位置=优先级</b> 三轨公转</span>
+      <span><b>光=状态</b> 光核呼吸编码创作阶段</span>
+      <span><b>时刻=氛围</b> 24h 光影循环</span>
+      <span><b>管理=动作</b> 行星跳轨换优先</span>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <div class="sky-dust"></div>
+      <canvas id="coreCanvas"></canvas>
+      <span class="stage-tip" id="stageTip">ORBITAL VIEW · 轨道视图</span>
+      <div class="stage-clock" id="stageClock"><b id="clockH">10:00</b><span id="clockPhase">灵感时段 · 光核暖金</span></div>
+      <div id="orbits"></div>
+    </div>
+    <aside class="dock" id="dock">
+      <div class="d-state">CORE STATE · 光核状态</div>
+      <div class="d-core">
+        <span class="dot"></span>
+        <div><b id="coreName">灵感时段</b><span id="coreDesc">光核为暖金色 · 呼吸平缓 · 适合发散选题</span></div>
+      </div>
+      <div class="d-state" style="margin-top:4px">MODULES · 行星模块 <span style="color:var(--afaint);font-weight:400">点行星查看</span></div>
+      <div class="d-plist" id="dPlList"></div>
+      <div class="d-mod" id="dMod">
+        <h5 id="dmTitle"><i></i><span></span></h5>
+        <div class="gauge">
+          <svg viewBox="0 0 68 68"><circle cx="34" cy="34" r="27" fill="none" stroke="rgba(230,230,234,.12)" stroke-width="6"/><circle id="gaugeFg" cx="34" cy="34" r="27" fill="none" stroke="var(--gold)" stroke-width="6" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="169.6"/></svg>
+          <div class="gt"><b id="gaugeNum">—</b><span id="gaugeLabel">指标</span></div>
+        </div>
+        <ul class="d-items" id="dmItems"></ul>
+        <div class="lane-ctl" id="laneCtl"></div>
+      </div>
+    </aside>
+    <div class="ctl-bar">
+      <span class="cl">时刻 <b id="ctlVal">10:00</b></span>
+      <input type="range" id="timeRange" min="0" max="24" step="0.1" value="10" aria-label="时刻">
+      <button class="btn ghost" id="btnCycle" type="button">自动昼夜</button>
+      <span class="cl-now" id="ctlNow">星核 · 三轨 · 五行星</span>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="concepts-card">
+    <h4>这次迭代，把「信息结构」本身设计成空间</h4>
+    <p class="cc-sub">沿 Xuan子 的审美与方法（银灰底、香槟金、光球、神经流光、一轮一改），但不再复现任何既有界面——以下是四个设计决策。</p>
+    <div class="cc-grid">
+      <div class="cc"><b>信息架构 · 侧边栏 → 轨道行星</b><p><span class="old">模块=列表项</span><span class="new">模块=行星</span>：优先级不是数字，而是<b>距光核的轨道</b>——内轨=高优先、外轨=低优先，一眼看清资源该投给谁。</p></div>
+      <div class="cc"><b>状态显示 · 指示灯 → 光核</b><p><span class="old">徽标/彩色圆点</span><span class="new">整个中枢的光</span>：光核颜色与呼吸编码创作阶段（灵感暖金 / 写稿银白 / 发布香槟 / 复盘冷青），<b>状态即光</b>。</p></div>
+      <div class="cc"><b>环境氛围 · 固定背景 → 24h 光影循环</b><p><span class="old">一张背景图</span><span class="new">时刻即氛围</span>：背景、光核、行星阴影随时刻流转——清晨冷、正午烈、入夜沉，界面会"过一天"。</p></div>
+      <div class="cc"><b>优先级管理 · 菜单/排序 → 行星跳轨</b><p><span class="old">在下拉框里选</span><span class="new">把行星拖上另一条轨道</span>：管理即动作，改优先级变成一次有动效的位移。</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>星核创作中枢为原创 UI 设计（本会话设计，非任何视频复现）：在 Xuan子 系列「创作面板 + 神经网络看板」的光球/水母语言基础上，将信息架构、状态表达、环境氛围与优先级管理重构为轨道空间系统。行星数据全部虚构。</p>
+    <p class="src">方法论来源 · Xuan子《AI做界面》系列（找起点 / 讲清交互 / 一轮一个具体意见 / AI 自检）+ 其银灰·香槟金·神经流光审美（已查证）</p>
+  </div>
+</footer>
+
+<script>
+/* ================= 数据（虚构） ================= */
+const PLANETS=[
+ {id:'works',  name:'作品库', mat:'works',  lane:'hi',  psi:30, metric:84,  metricLabel:'近7天发布 4 · 平均收藏率 8.4%', items:['AI做界面·先做功能vs先做UI？','Opus5.5 重构创作面板','4 个按钮动效提示词'], core:'把已发布的内容沉淀成轨道上的重资产'},
+ {id:'studio', name:'创作台', mat:'studio', lane:'mid', psi:34, metric:62,  metricLabel:'写稿进度 62% · 今日待写 1 篇', items:['创作面板·三版风格合集（草稿）','双链补全笔记（未创建）'], core:'正在写的内容，光核为银白时最专注'},
+ {id:'ideas',  name:'选题池', mat:'ideas',  lane:'mid', psi:26, metric:75,  metricLabel:'灵感利用率 75% · 待排期 3 条', items:['新手怎么给 AI 说清楚「高级感」','创作面板还能怎么换风格？','白纸生长动画拆解'], core:'灵感像琉璃一样透亮，优先级高的先转创作台'},
+ {id:'cal',    name:'日历表', mat:'cal',    lane:'low', psi:24, metric:40,  metricLabel:'本周发布 4 · 下一次：明天 18:00', items:['发布排期：周一/周四','选题转草稿 2 条','复盘窗口：周日'], core:'排期如冰晶，颗粒分明，负责把节奏固定下来'},
+ {id:'methods',name:'方法库', mat:'methods',lane:'low', psi:27, metric:58,  metricLabel:'笔记 6 篇 · 双链 14 条', items:['拆参考六维','改稿四问','15 轮对话工作流'], core:'墨玉一样沉稳的方法沉淀，是所有轨道的地基'}
+];
+const LANES={hi:{i:0,r:0.21,sp:46}, mid:{i:1,r:0.35,sp:78}, low:{i:2,r:0.475,sp:112}};
+const LANE_NAMES={hi:'内轨 · 高优先', mid:'中轨 · 中优先', low:'外轨 · 低优先'};
+/* 创作阶段（时刻 → 光核状态） */
+const PHASES=[
+ {name:'灵感时段', h0:6,  h1:11, hue:42,  sat:70, lig:62, sky1:'#0B0E13', sky2:'#18202C', desc:'光核为暖金色 · 呼吸平缓 · 适合发散选题'},
+ {name:'写稿时段', h0:11, h1:17, hue:225, sat:18, lig:86, sky1:'#0D1118', sky2:'#1A2436', desc:'光核为银白色 · 呼吸均匀 · 适合专注成稿'},
+ {name:'发布时段', h0:17, h1:21, hue:40,  sat:72, lig:70, sky1:'#151016', sky2:'#2A1E1C', desc:'光核为香槟金 · 呼吸加快 · 适合发布与互动'},
+ {name:'复盘时段', h0:21, h1:6,  hue:165, sat:36, lig:55, sky1:'#070B10', sky2:'#0E1418', desc:'光核为冷青色 · 呼吸放缓 · 适合复盘与整理'}
+];
+let hour=10,cycling=false,selected='works';
+const stage=document.getElementById('stage');
+
+/* ================= 光核 Canvas ================= */
+(function(){
+  const cv=document.getElementById('coreCanvas'),ctx=cv.getContext('2d');
+  let W=0,H=0,CX=0,CY=0,R0=0;
+  function resize(){W=cv.width=Math.floor(stage.clientWidth*(devicePixelRatio>1?1.5:1));H=cv.height=Math.floor(stage.clientHeight*(devicePixelRatio>1?1.5:1));CX=W/2;CY=H/2;R0=Math.min(W,H)*0.16;}
+  resize();window.addEventListener('resize',resize);
+  const N=140,ga=Math.PI*(3-Math.sqrt(5));
+  const pts=[];
+  for(let i=0;i<N;i++){const y=1-(i/(N-1))*2,r=Math.sqrt(1-y*y),th=ga*i;pts.push({x:Math.cos(th)*r,y:y,z:Math.sin(th)*r,ph:Math.random()*6.28});}
+  function phase(){return PHASES.find(p=>{const h=hour;return p.h0<=p.h1?(h>=p.h0&&h<p.h1):(h>=p.h0||h<p.h1);})||PHASES[0];}
+  function tick(t){
+    const ph=phase(),p=(t%5000)/5000,cyc=Math.sin(p*6.283);
+    const hue=ph.hue, sat=ph.sat, lig=ph.lig+cyc*4;
+    const sc=1+cyc*0.06;
+    ctx.clearRect(0,0,W,H);
+    ctx.save();ctx.translate(CX,CY);ctx.scale(sc,sc);
+    const g=ctx.createRadialGradient(0,0,R0*0.35,0,0,R0*2.2);
+    g.addColorStop(0,'hsla('+hue+','+sat+'%,'+lig+'%,0.34)');g.addColorStop(1,'hsla('+hue+','+sat+'%,'+lig+'%,0)');
+    ctx.fillStyle=g;ctx.fillRect(-R0*2.2,-R0*2.2,R0*4.4,R0*4.4);
+    // 粒子
+    for(const pt of pts){
+      const ps=1+cyc*0.06*0.5*Math.sin(pt.ph+cyc*2.2),rr=R0*ps;
+      const b=0.28+0.55*(0.5+0.5*Math.sin(pt.ph+cyc*2.2));
+      ctx.fillStyle='hsla('+hue+','+sat+'%,'+lig+'%,'+b+')';
+      ctx.beginPath();ctx.arc(pt.x*rr,pt.y*rr,1.5,0,6.28);ctx.fill();
+    }
+    ctx.restore();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+/* ================= 轨道与行星 ================= */
+const orbitsEl=document.getElementById('orbits');
+const planetEls={};
+function buildOrbits(){
+  const Rbase=Math.min(stage.clientWidth,stage.clientHeight);
+  const seen={};
+  PLANETS.forEach((p,idx)=>{
+    const lane=LANES[p.lane];
+    const rPx=Rbase*lane.r;
+    if(!seen[p.lane]){
+      const o=document.createElement('div');
+      o.className='orbit';o.id='orbit-'+p.lane;
+      o.style.setProperty('--r',rPx+'px');
+      o.style.setProperty('--sp',lane.sp+'s');
+      o.innerHTML='<span class="ring"></span>';
+      orbitsEl.appendChild(o);
+      seen[p.lane]=o;
+    }
+    const w=document.createElement('div');
+    w.className='pl-wrap';w.id='wrap-'+p.id;
+    p.ang=idx*(360/PLANETS.length);
+    w.style.transform='rotate('+p.ang+'deg) translateX('+rPx+'px)';
+    w.style.setProperty('--sp',lane.sp+'s');
+    w.style.setProperty('--ps',p.psi+'px');
+    w.innerHTML='<div class="planet" id="planet-'+p.id+'" data-id="'+p.id+'">'
+      +'<span class="mat mat-'+p.mat+'"></span><span class="halo"></span>'
+      +'<span class="pri'+(p.lane==='hi'?' hi':'')+'" id="pri-'+p.id+'">'+(p.lane==='hi'?1:p.lane==='mid'?2:3)+'</span>'
+      +'<span class="tag">'+p.name+'</span></div>';
+    orbitsEl.appendChild(w);
+    planetEls[p.id]=w;
+    w.querySelector('.planet').addEventListener('click',()=>selectPlanet(p.id));
+  });
+}
+function syncLane(id){
+  const p=PLANETS.find(x=>x.id===id),lane=LANES[p.lane];
+  const Rbase=Math.min(stage.clientWidth,stage.clientHeight),rPx=Rbase*lane.r;
+  const w=planetEls[id];
+  w.style.transform='rotate('+(p.ang||0)+'deg) translateX('+rPx+'px)';
+  w.style.setProperty('--sp',lane.sp+'s');
+  const o=document.getElementById('orbit-'+p.lane);
+  if(o){o.style.setProperty('--r',rPx+'px');o.style.setProperty('--sp',lane.sp+'s');}
+  const pri=document.getElementById('pri-'+id);
+  pri.textContent=p.lane==='hi'?1:p.lane==='mid'?2:3;
+  pri.classList.toggle('hi',p.lane==='hi');
+}
+window.addEventListener('resize',()=>{PLANETS.forEach(p=>syncLane(p.id));});
+buildOrbits();
+
+/* ================= 数据台 ================= */
+const dPlList=document.getElementById('dPlList'),dMod=document.getElementById('dMod');
+function renderDockList(){
+  dPlList.innerHTML='';
+  PLANETS.forEach(p=>{
+    const row=document.createElement('div');
+    row.className='d-row'+(selected===p.id?' on':'');
+    row.dataset.id=p.id;
+    row.innerHTML='<span class="pdot" style="background:'+LANE_COLORS[p.id]+'"></span><b>'+p.name+'</b><span class="lane '+(p.lane==='hi'?'hi':'')+'">'+LANE_NAMES[p.lane].split(' · ')[1]+'</span>';
+    dPlList.appendChild(row);
+    row.addEventListener('click',()=>selectPlanet(p.id));
+  });
+}
+const LANE_COLORS={works:'#9AA4B0',studio:'#E5A93F',ideas:'#6FB4BE',cal:'#9ECFE8',methods:'#5E7B78'};
+const dmTitle=document.getElementById('dmTitle'),gaugeFg=document.getElementById('gaugeFg'),
+  gaugeNum=document.getElementById('gaugeNum'),gaugeLabel=document.getElementById('gaugeLabel'),
+  dmItems=document.getElementById('dmItems'),laneCtl=document.getElementById('laneCtl');
+function selectPlanet(id){
+  selected=id;
+  const p=PLANETS.find(x=>x.id===id);
+  document.querySelectorAll('.planet').forEach(x=>x.classList.toggle('on',x.dataset.id===id));
+  document.querySelectorAll('.d-row').forEach(x=>x.classList.toggle('on',x.dataset.id===id));
+  dMod.classList.add('open');
+  const c=LANE_COLORS[id];
+  dmTitle.querySelector('i').style.background=c;
+  dmTitle.querySelector('span').textContent=p.name+' · 数据光环';
+  const circ=2*Math.PI*27;
+  gaugeFg.style.stroke=c;
+  gaugeFg.style.transition='stroke-dashoffset 1s ease';
+  requestAnimationFrame(()=>{gaugeFg.style.strokeDashoffset=circ*(1-p.metric/100);});
+  gaugeNum.textContent=p.metric+'%';
+  gaugeLabel.textContent=p.metricLabel;
+  dmItems.innerHTML=p.items.map(t=>'<li>'+t+'</li>').join('');
+  laneCtl.innerHTML='';
+  ['hi','mid','low'].forEach(l=>{
+    const b=document.createElement('button');
+    b.type='button';b.dataset.lane=l;
+    b.textContent=LANE_NAMES[l].split(' · ')[0];
+    b.classList.toggle('on',p.lane===l);
+    b.addEventListener('click',()=>setLane(id,l));
+    laneCtl.appendChild(b);
+  });
+}
+function setLane(id,l){
+  const p=PLANETS.find(x=>x.id===id);
+  if(p.lane===l)return;
+  p.lane=l;syncLane(id);
+  renderDockList();selectPlanet(id);
+  toast('「'+p.name+'」已移至'+LANE_NAMES[l].split(' · ')[0]+' · 优先级更新');
+}
+document.addEventListener('click',e=>{
+  const pl=e.target.closest('.planet');
+  if(pl)selectPlanet(pl.dataset.id);
+});
+renderDockList();selectPlanet('works');
+
+/* ================= 时间光环境 ================= */
+const timeRange=document.getElementById('timeRange'),ctlVal=document.getElementById('ctlVal'),
+  btnCycle=document.getElementById('btnCycle'),clockH=document.getElementById('clockH'),
+  clockPhase=document.getElementById('clockPhase'),ctlNow=document.getElementById('ctlNow');
+function applyHour(h){
+  hour=Math.max(0,Math.min(24,h));
+  const ph=PHASES.find(p=>{const hh=hour;return p.h0<=p.h1?(hh>=p.h0&&hh<p.h1):(hh>=p.h0||hh<p.h1);})||PHASES[0];
+  const root=document.documentElement;
+  root.style.setProperty('--sky-1',ph.sky1);
+  root.style.setProperty('--sky-2',ph.sky2);
+  root.style.setProperty('--core-h',ph.hue);
+  root.style.setProperty('--core-s',ph.sat);
+  root.style.setProperty('--core-l',ph.lig);
+  // 行星阴影方向随时刻旋转
+  const ang=(hour/24)*Math.PI*2;
+  root.style.setProperty('--sh-x',(Math.cos(ang)*14).toFixed(1)+'px');
+  root.style.setProperty('--sh-y',(Math.sin(ang)*14).toFixed(1)+'px');
+  // 光核呼吸速度随阶段微调
+  const H=Math.floor(hour),M=Math.round((hour-H)*60);
+  clockH.textContent=(H<10?'0':'')+H+':'+(M<10?'0':'')+M;
+  clockPhase.textContent=ph.name+' · 光核'+({42:'暖金',225:'银白',40:'香槟',165:'冷青'}[ph.hue]);
+  ctlVal.textContent=clockH.textContent;
+  timeRange.value=hour;
+  // 数据台光核状态卡
+  document.querySelector('.d-core b').textContent=ph.name;
+  document.querySelector('.d-core span').textContent=ph.desc;
+  const dot=document.querySelector('.d-core .dot');
+  dot.style.background='hsl('+ph.hue+','+ph.sat+'%,'+ph.lig+'%)';
+  dot.style.boxShadow='0 0 12px hsl('+ph.hue+','+ph.sat+'%,'+ph.lig+'%/0.6)';
+}
+timeRange.addEventListener('input',()=>{applyHour(+timeRange.value);});
+btnCycle.addEventListener('click',()=>{
+  cycling=!cycling;
+  btnCycle.textContent=cycling?'停止循环':'自动昼夜';
+  btnCycle.classList.toggle('ghost',!cycling);
+});
+setInterval(()=>{if(cycling){applyHour((hour+0.05)%24);}},200);
+applyHour(10);
+
+/* ================= Toast ================= */
+let _t=null;
+function toast(msg){
+  let el=document.querySelector('.os-toast');
+  if(!el){el=document.createElement('div');el.className='os-toast';el.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(16px);background:var(--asurf-2);color:var(--aink);font-size:12px;padding:9px 18px;border-radius:999px;border:1px solid var(--aline-2);opacity:0;pointer-events:none;transition:all .3s;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.4)';document.body.appendChild(el);}
+  el.textContent=msg;
+  el.style.opacity='1';el.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(_t);_t=setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(-50%) translateY(16px)';},1800);
+}
+applyHour(18);
+setLane('cal','hi');
+selectPlanet('cal');
+ctlNow.textContent='星核 · 三轨 · 五行星 · 光核状态='+(PHASES.find(p=>{const h=hour;return p.h0<=p.h1?(h>=p.h0&&h<p.h1):(h>=p.h0||h<p.h1);})||PHASES[0]).name;
+</script>
+</body>
+</html>
+

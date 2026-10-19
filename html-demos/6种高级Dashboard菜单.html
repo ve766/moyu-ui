@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6 种高级 Dashboard 菜单设计 · 复现演示</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230E7C66'/%3E%3Cpath d='M8 10h16M8 16h10M8 22h13' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap">
+<style>
+/* ===== 基础与令牌 ===== */
+:root{
+  --bg:#F4F3F0; --surface:#FFFFFF; --ink:#191C20; --muted:#5C6168; --faint:#8A8F96;
+  --hair:rgba(25,28,32,.08); --hair-strong:rgba(25,28,32,.14);
+  --accent:#0E7C66; --accent-strong:#0A5F4E; --accent-tint:#E3F0EC;
+  --rose:#B85C4A; --rose-tint:#F7E9E5; --amber:#C98A1E; --amber-tint:#F8EFDD;
+  --slate:#64748B; --slate-tint:#E9EDF2;
+  --radius:14px; --radius-lg:18px;
+  --font:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  --tnum:font-variant-numeric:tabular-nums;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font); background:var(--bg); color:var(--ink);
+  line-height:1.6; -webkit-font-smoothing:antialiased; font-size:15px;
+}
+button{font-family:inherit}
+img{max-width:100%;display:block}
+.tnum{font-variant-numeric:tabular-nums}
+::selection{background:var(--accent);color:#fff}
+
+/* ===== 页面头部（演示说明） ===== */
+.page-head{padding:28px 20px 8px;max-width:1180px;margin:0 auto}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;
+  color:var(--accent);letter-spacing:.04em;text-transform:uppercase;
+}
+.eyebrow::before{content:"";width:18px;height:2px;background:var(--accent);border-radius:2px}
+.page-head h1{font-size:26px;line-height:1.3;font-weight:700;margin:10px 0 6px;letter-spacing:-.01em}
+.page-head p{color:var(--muted);font-size:14px;max-width:72ch}
+.page-head .src{margin-top:10px;font-size:12.5px;color:var(--faint);display:flex;flex-wrap:wrap;gap:8px}
+
+/* ===== 模式切换 ===== */
+.switch-wrap{max-width:1180px;margin:0 auto;padding:18px 20px 0}
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.tab{
+  border:1px solid var(--hair);background:var(--surface);color:var(--muted);
+  border-radius:12px;padding:10px 12px;font-size:13px;font-weight:500;cursor:pointer;
+  text-align:left;line-height:1.35;transition:all .18s ease;min-height:44px;
+}
+.tab b{display:block;color:var(--ink);font-weight:600;font-size:13.5px}
+.tab small{display:block;color:var(--faint);font-size:11.5px;margin-top:1px}
+.tab:hover{border-color:var(--hair-strong)}
+.tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.tab.on b{color:#fff}
+.tab.on small{color:rgba(255,255,255,.62)}
+.tab .n{font-variant-numeric:tabular-nums;opacity:.55;margin-right:6px}
+
+/* ===== 设计说明 + AI 描述词 ===== */
+.info-wrap{max-width:1180px;margin:0 auto;padding:16px 20px 0}
+.info-panel{
+  background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius-lg);
+  padding:18px;display:grid;gap:16px;
+}
+.info-grid{display:grid;gap:10px}
+.info-row{display:grid;grid-template-columns:64px 1fr;gap:10px;font-size:13.5px}
+.info-row .k{color:var(--faint);font-weight:600;font-size:12.5px;padding-top:2px}
+.info-row .v{color:var(--muted)}
+.info-row .v b{color:var(--ink);font-weight:600}
+.prompt-box{
+  background:var(--ink);color:#EDEDEA;border-radius:12px;padding:14px 14px 12px;font-size:13px;
+  line-height:1.75;position:relative;
+}
+.prompt-box .prompt-label{color:rgba(255,255,255,.5);font-size:11.5px;letter-spacing:.05em;font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.copy-btn{
+  border:1px solid rgba(255,255,255,.24);background:transparent;color:#EDEDEA;border-radius:8px;
+  padding:4px 10px;font-size:12px;cursor:pointer;min-height:28px;transition:all .15s ease;
+}
+.copy-btn:hover{background:rgba(255,255,255,.1)}
+.copy-btn.copied{background:var(--accent);border-color:var(--accent)}
+.prompt-box .txt{word-break:break-word}
+
+/* ===== 应用框架 ===== */
+.stage{max-width:1180px;margin:0 auto;padding:16px 20px 40px}
+.app{
+  position:relative;background:var(--bg);border:1px solid var(--hair-strong);
+  border-radius:var(--radius-lg);overflow:hidden;min-height:600px;
+  box-shadow:0 24px 60px -28px rgba(25,28,32,.25);
+  transition:min-height .4s ease;
+}
+.app .frame-top{
+  height:34px;background:var(--surface);border-bottom:1px solid var(--hair);
+  display:flex;align-items:center;gap:6px;padding:0 12px;position:relative;z-index:6;
+}
+.app .frame-top i{width:9px;height:9px;border-radius:50%;display:block}
+.app .frame-top i:nth-child(1){background:#E8A3A3}
+.app .frame-top i:nth-child(2){background:#E8C99A}
+.app .frame-top i:nth-child(3){background:#A9CEB5}
+.app .frame-top .addr{
+  flex:1;margin-left:8px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--faint);
+  padding:2px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;
+}
+.app .frame-top .pt-name{font-size:11px;color:var(--faint);font-weight:600;white-space:nowrap}
+
+/* 主色 hero（透明顶栏用） */
+.hero-bg{
+  position:absolute;inset:34px 0 auto 0;height:0;z-index:0;opacity:0;transition:opacity .3s ease;
+}
+/* ===== 顶栏（方案1 透明 / 方案3 当前项展开） ===== */
+.topbar{
+  position:relative;z-index:4;display:none;align-items:center;gap:4px;padding:0 16px;
+}
+.tb-item{
+  display:flex;align-items:center;gap:8px;height:38px;padding:0 11px;border-radius:10px;
+  border:none;background:transparent;cursor:pointer;color:var(--muted);
+  font-size:13px;font-weight:500;min-width:38px;justify-content:flex-start;
+  white-space:nowrap;overflow:hidden;transition:background .2s ease,color .2s ease;
+}
+.tb-item svg{width:18px;height:18px;flex:none;stroke:currentColor}
+.tb-item .lbl{opacity:0;width:0;transition:opacity .18s ease,width .3s cubic-bezier(.34,1.56,.64,1)}
+.tb-item:hover{color:var(--ink)}
+
+/* ===== 侧边栏 ===== */
+.sidebar{position:absolute;inset:34px 0 auto 0;z-index:3;display:none;flex-direction:column;gap:2px;padding:10px 8px}
+.sb-item{
+  position:relative;display:flex;align-items:center;gap:10px;width:100%;height:40px;
+  padding:0 10px;border:none;background:transparent;border-radius:10px;cursor:pointer;
+  color:var(--muted);font-size:13px;font-weight:500;justify-content:center;
+  transition:background .18s ease,color .18s ease;
+}
+.sb-item svg{width:18px;height:18px;flex:none;stroke:currentColor}
+.sb-item .lbl{display:none}
+.sb-item:hover{color:var(--ink)}
+.sb-group{height:1px;background:var(--hair);margin:6px 10px;flex:none}
+
+/* 悬停提示（方案5） */
+.tip{
+  position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%) translateX(-4px);
+  background:var(--ink);color:#fff;font-size:12px;padding:4px 10px;border-radius:8px;
+  white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;
+  z-index:20;box-shadow:0 8px 20px rgba(25,28,32,.18);
+}
+.tip::before{content:"";position:absolute;right:100%;top:50%;transform:translateY(-50%);border:5px solid transparent;border-right-color:var(--ink)}
+
+/* ===== 快捷操作列（方案6） ===== */
+.quickrail{
+  position:absolute;inset:34px 0 auto 0;z-index:3;display:none;flex-direction:column;gap:10px;
+  padding:14px 0;align-items:center;
+}
+.q-btn{
+  width:40px;height:40px;border-radius:50%;border:1px solid var(--hair-strong);background:var(--surface);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);
+  transition:all .16s ease;flex:none;
+}
+.q-btn svg{width:18px;height:18px;stroke:currentColor}
+.q-btn:hover{color:var(--ink);border-color:var(--ink)}
+.q-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.q-btn.primary:hover{background:var(--accent-strong);color:#fff}
+.q-btn .tip{left:calc(100% + 8px)}
+
+/* ===== 内容区 ===== */
+.content{position:relative;z-index:1;padding:18px 16px 26px}
+.content-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.content-head h2{font-size:20px;font-weight:700;letter-spacing:-.01em;line-height:1.3;transition:font-size .2s ease}
+.content-head .sub{font-size:12px;color:var(--faint);margin-top:2px;font-variant-numeric:tabular-nums}
+.ranges{display:inline-flex;background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:3px;gap:2px}
+.ranges button{
+  border:none;background:transparent;color:var(--muted);font-size:12.5px;font-weight:500;
+  padding:6px 12px;border-radius:8px;cursor:pointer;min-height:32px;transition:all .15s ease;
+}
+.ranges button.on{background:var(--ink);color:#fff}
+
+/* KPI 卡片 */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.kpi{
+  background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius);
+  padding:14px 14px 12px;position:relative;overflow:hidden;
+}
+.kpi .lbl{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.kpi .val{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em;margin:4px 0 2px;line-height:1.2}
+.kpi .delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.kpi .delta.up{color:var(--accent)}
+.kpi .delta.down{color:var(--rose)}
+.kpi .delta.neutral{color:var(--faint)}
+.kpi .spark{position:absolute;right:0;bottom:0;opacity:.9}
+.kpi .spark svg{width:88px;height:34px;display:block}
+
+/* 图表区 */
+.charts{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:12px}
+.chart-card{
+  background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius);padding:14px;
+}
+.chart-card .c-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+.chart-card .c-title{font-size:14px;font-weight:600}
+.chart-card .c-sub{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.chart-box{width:100%;height:210px}
+
+/* 运营提醒 */
+.alerts{display:flex;flex-direction:column}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:12px 2px;border-bottom:1px solid var(--hair);font-size:13px}
+.alert:last-child{border-bottom:none}
+.alert .dot{width:7px;height:7px;border-radius:50%;margin-top:6px;flex:none}
+.alert .dot.a{background:var(--amber)}
+.alert .dot.b{background:var(--rose)}
+.alert .dot.c{background:var(--accent)}
+.alert .t{color:var(--ink);font-weight:500;line-height:1.5}
+.alert .m{color:var(--muted);font-size:12px;margin-top:1px;line-height:1.5}
+.alert .time{margin-left:auto;color:var(--faint);font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* 表格 */
+.orders-card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius);padding:14px}
+.orders-card .c-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.orders-card .c-title{font-size:14px;font-weight:600}
+.orders-card .more{font-size:12px;color:var(--accent);cursor:pointer;border:none;background:none;font-weight:500;min-height:28px;padding:0 4px}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:520px}
+colgroup col:nth-child(1){width:24%}colgroup col:nth-child(2){width:26%}
+colgroup col:nth-child(3){width:14%}colgroup col:nth-child(4){width:16%}colgroup col:nth-child(5){width:20%}
+th{
+  text-align:left;font-size:11.5px;color:var(--faint);font-weight:600;padding:8px 8px;
+  border-bottom:1px solid var(--hair);letter-spacing:.02em;white-space:nowrap;
+}
+td{padding:10px 8px;font-size:13px;border-bottom:1px solid var(--hair);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+td:first-child{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:500}
+tr:last-child td{border-bottom:none}
+.status{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px}
+.status::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.status.done{color:var(--accent);background:var(--accent-tint)}
+.status.ship{color:var(--amber);background:var(--amber-tint)}
+.status.wait{color:var(--slate);background:var(--slate-tint)}
+.status.void{color:var(--rose);background:var(--rose-tint)}
+
+/* ===== Toast ===== */
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(16px);
+  background:var(--ink);color:#fff;font-size:13px;padding:10px 18px;border-radius:12px;
+  opacity:0;pointer-events:none;transition:all .25s ease;z-index:99;box-shadow:0 12px 32px rgba(25,28,32,.3);
+  max-width:min(86vw,420px);text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== 方案样式 ===== */
+/* 方案1 透明顶栏 */
+.pt1 .hero-bg{height:200px;opacity:1;background:linear-gradient(135deg,#0A241D 0%,#10463A 52%,#137157 100%)}
+.pt1 .topbar{display:flex;position:absolute;top:34px;left:0;right:0}
+.pt1 .tb-item{color:rgba(255,255,255,.82)}
+.pt1 .tb-item:hover{color:#fff;background:rgba(255,255,255,.08)}
+.pt1 .tb-item.on{background:rgba(255,255,255,.16);color:#fff}
+.pt1 .tb-item .lbl{opacity:1;width:auto;padding-left:2px}
+.pt1 .content{padding-top:150px}
+.pt1 .content-head h2{color:#fff}
+.pt1 .content-head .sub{color:rgba(255,255,255,.6)}
+.pt1 .ranges{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.18)}
+.pt1 .ranges button{color:rgba(255,255,255,.75)}
+.pt1 .ranges button.on{background:rgba(255,255,255,.92);color:var(--ink)}
+.pt1 .kpis{margin-top:14px}
+
+/* 方案2 右侧竖轨 */
+.pt2 .sidebar{right:0;left:auto;background:#FDFCFA;border-left:1px solid var(--hair);width:62px;align-items:center;padding-top:14px}
+.pt2 .sb-item{width:42px;height:42px;border-radius:12px}
+.pt2 .sb-item.on{background:var(--ink);color:#fff}
+.pt2 .content{padding-right:78px}
+
+/* 方案3 当前项展开 */
+.pt3 .topbar{display:flex;background:var(--surface);border-bottom:1px solid var(--hair);padding:8px 14px}
+.pt3 .tb-item{border:1px solid transparent}
+.pt3 .tb-item.on{background:var(--accent-tint);color:var(--accent-strong)}
+.pt3 .tb-item.on .lbl{opacity:1;width:auto;padding-left:2px}
+
+/* 方案4 图标菜单配大标题 */
+.pt4 .sidebar{left:0;background:var(--surface);border-right:1px solid var(--hair);width:60px;align-items:center;padding-top:14px}
+.pt4 .sb-item{width:42px;height:42px;border-radius:12px}
+.pt4 .sb-item.on{background:var(--accent-tint);color:var(--accent-strong)}
+.pt4 .content-head h2{font-size:26px}
+.pt4 .content{padding-left:72px}
+
+/* 方案5 图标轨 + 悬停 */
+.pt5 .sidebar{left:0;background:var(--surface);border-right:1px solid var(--hair);width:54px;align-items:center;padding-top:14px}
+.pt5 .sb-item{width:38px;height:38px;border-radius:10px}
+.pt5 .sb-item.on{background:var(--ink);color:#fff}
+.pt5 .sb-item:hover .tip,.pt5 .sb-item.tip-on .tip{opacity:1;transform:translateY(-50%) translateX(0)}
+.pt5 .content{padding-left:66px}
+
+/* 方案6 菜单旁快捷操作 */
+.pt6 .sidebar{left:0;background:var(--surface);border-right:1px solid var(--hair);width:164px;align-items:stretch;padding:14px 10px}
+.pt6 .sb-item{justify-content:flex-start;gap:10px}
+.pt6 .sb-item .lbl{display:block;font-size:13px}
+.pt6 .sb-item.on{background:var(--accent-tint);color:var(--accent-strong)}
+.pt6 .quickrail{left:164px;width:52px;align-items:center;background:transparent}
+.pt6 .content{padding-left:228px}
+
+/* ===== 响应式 ===== */
+@media (min-width:768px){
+  .page-head{padding-top:40px}
+  .page-head h1{font-size:34px}
+  .tabs{grid-template-columns:repeat(3,1fr)}
+  .info-panel{grid-template-columns:1fr 1.2fr;align-items:start}
+  .kpis{grid-template-columns:repeat(4,1fr);gap:12px}
+  .charts{grid-template-columns:repeat(12,1fr)}
+  .chart-card.span8{grid-column:span 8}
+  .chart-card.span4{grid-column:span 4}
+  .chart-card.span12{grid-column:span 12}
+  .chart-box{height:250px}
+  .chart-box.short{height:200px}
+  .app{min-height:640px}
+}
+@media (max-width:600px){
+  .pt2 .sidebar{bottom:0;top:auto;right:auto;left:0;width:100%;height:56px;border-left:none;border-top:1px solid var(--hair);flex-direction:row;justify-content:space-around;padding:6px 12px}
+  .pt2 .sb-item{width:40px;height:40px}
+  .pt2 .content{padding-right:16px;padding-bottom:70px}
+  .pt4 .sidebar,.pt5 .sidebar{bottom:0;top:auto;left:0;width:100%;height:56px;border-right:none;border-top:1px solid var(--hair);flex-direction:row;justify-content:space-around;padding:6px 12px}
+  .pt4 .sb-item,.pt5 .sb-item{width:40px;height:40px}
+  .pt4 .content,.pt5 .content{padding-left:16px;padding-bottom:70px}
+  .pt6 .sidebar{bottom:0;top:auto;left:0;width:100%;height:56px;border-right:none;border-top:1px solid var(--hair);flex-direction:row;justify-content:space-around;padding:6px 8px}
+  .pt6 .sb-item .lbl{display:none}
+  .pt6 .sb-item{width:auto;height:40px;padding:0 10px}
+  .pt6 .quickrail{display:none}
+  .pt6 .content{padding-left:16px;padding-bottom:70px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<!-- 图标库 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5.5"/><path d="M4 19h16"/><path d="M8 19v-6"/><path d="M13 19V8"/><path d="M18 19v-9"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.5-3.2 2.6-5 5.5-5s5 1.8 5.5 5"/><circle cx="17" cy="9.5" r="2.4"/><path d="M16 14.2c2.6.2 4.2 1.9 4.5 4.3"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v10l-8 4-8-4V7l8-4Z"/><path d="M4 7l8 4 8-4"/><path d="M12 11v10"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8l1.2 2.4 2.7.4 1.2 2.4-1.4 2.3v1.4l1.4 2.3-1.2 2.4-2.7.4L12 21.2l-1.2-2.4-2.7-.4-1.2-2.4 1.4-2.3v-1.4L7.9 8l1.2-2.4 2.7-.4L12 2.8Z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-dl" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7.5 11.5L12 16l4.5-4.5"/><path d="M5 20h14"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="12" r="2.4"/><circle cx="17.5" cy="6" r="2.4"/><circle cx="17.5" cy="18" r="2.4"/><path d="M8.7 10.7l6.6-3.4M8.7 13.3l6.6 3.4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v3.2h-3.2"/></symbol>
+  </defs>
+</svg>
+
+<header class="page-head">
+  <span class="eyebrow">复现演示 · 术语设计 Skill</span>
+  <h1>6 种高级 Dashboard 菜单设计</h1>
+  <p>同一个数据看板，换 6 种菜单思路——位置、布局与交互方式都会改变整个页面的视觉层次和使用体验。每种方案都配好可直接发给 AI 的「描述词」，搭配 Codex、Cursor、Trae 这类 Agent 使用。</p>
+  <div class="src">来源：抖音 @西瓜同学《术语设计 Skill 教 AI 做 6 种高级 dashboard 后台菜单》 · 数据为示例演示 · 独立 HTML 可离线打开</div>
+</header>
+
+<div class="switch-wrap">
+  <div class="tabs" id="tabs"></div>
+</div>
+
+<div class="info-wrap">
+  <div class="info-panel">
+    <div class="info-grid">
+      <div class="info-row"><span class="k">设计要点</span><span class="v" id="infoKey"></span></div>
+      <div class="info-row"><span class="k">适用场景</span><span class="v" id="infoUse"></span></div>
+    </div>
+    <div class="prompt-box">
+      <div class="prompt-label"><span>AI 描述词（可复制后直接粘贴给 Agent）</span><button class="copy-btn" id="copyBtn" type="button">复制描述词</button></div>
+      <div class="txt" id="promptTxt"></div>
+    </div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="app" id="app">
+    <div class="frame-top">
+      <i></i><i></i><i></i>
+      <span class="addr">demo.local / 经营驾驶舱 · 后台</span>
+      <span class="pt-name" id="framePtName"></span>
+    </div>
+    <div class="hero-bg" id="heroBg"></div>
+
+    <nav class="topbar" id="topbar"></nav>
+
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <aside class="quickrail" id="quickrail"></aside>
+
+    <main class="content" id="content">
+      <header class="content-head">
+        <div>
+          <h2 id="pageTitle">经营驾驶舱</h2>
+          <div class="sub" id="pageSub">2026-10-17 · 示例数据 · 单位万元</div>
+        </div>
+        <div class="ranges" id="ranges">
+          <button type="button" data-r="今日">今日</button>
+          <button type="button" data-r="本周" class="on">本周</button>
+          <button type="button" data-r="本月">本月</button>
+        </div>
+      </header>
+
+      <section class="kpis" id="kpis"></section>
+
+      <section class="charts">
+        <div class="chart-card span8">
+          <div class="c-head"><span class="c-title">营收趋势</span><span class="c-sub">近 30 天 · 万元</span></div>
+          <div class="chart-box" id="chartTrend"></div>
+        </div>
+        <div class="chart-card span4">
+          <div class="c-head"><span class="c-title">渠道构成</span><span class="c-sub">本周期</span></div>
+          <div class="chart-box" id="chartChannel"></div>
+        </div>
+        <div class="chart-card span8">
+          <div class="c-head"><span class="c-title">品类销售</span><span class="c-sub">本周期 · 万元</span></div>
+          <div class="chart-box short" id="chartCat"></div>
+        </div>
+        <div class="chart-card span4">
+          <div class="c-head"><span class="c-title">运营提醒</span><span class="c-sub">3 条待处理</span></div>
+          <div class="alerts">
+            <div class="alert"><span class="dot a"></span><div><div class="t">「华东仓」库存预警：3 个 SKU 低于安全线</div><div class="m">建议今日补货，避免大促断货</div></div><span class="time">10:24</span></div>
+            <div class="alert"><span class="dot b"></span><div><div class="t">大促活动素材待审核</div><div class="m">品牌方已回复，需在 18:00 前确认</div></div><span class="time">09:41</span></div>
+            <div class="alert"><span class="dot c"></span><div><div class="t">昨日报表已生成</div><div class="m">请复核订单口径后归档</div></div><span class="time">08:12</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="orders-card">
+        <div class="c-head"><span class="c-title">实时订单</span><button class="more" id="moreBtn" type="button">查看全部</button></div>
+        <div class="table-scroll">
+          <table>
+            <colgroup><col><col><col><col><col></colgroup>
+            <thead><tr><th>订单号</th><th>客户</th><th>渠道</th><th>金额</th><th>状态</th></tr></thead>
+            <tbody id="ordersBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== 数据 ===== */
+var PATTERNS=[
+ {id:1,name:'透明顶栏',kw:'顶部 · 融入背景',
+  key:'去掉顶部菜单的底色和分隔线，让导航文字直接融入页面背景；只给当前选中项加一块半透明的白色圆角底，菜单与页面融为一体，首屏更完整。',
+  use:'首屏有大图或渐变背景的后台最适合。',
+  prompt:'顶部导航使用透明顶栏（Transparent Top Bar）：去掉菜单底色与分隔线，文字直接融入页面背景；当前选中项用半透明白色圆角底（约 16–18% 白）突出，其余项无底。适合首屏带大图或渐变背景的页面。'},
+ {id:2,name:'右侧竖轨菜单',kw:'右侧 · 窄图标竖轨',
+  key:'把主菜单从左边挪到最右边，收成一条窄窄的图标竖轨，整条用亮色；当前项用深色圆角底突出，左侧空间完整留给内容，布局更有辨识度。',
+  use:'内容区需要整块展示的看板。',
+  prompt:'主菜单放在页面最右侧，收成窄图标竖轨（Right Rail），整条使用亮色背景；当前项用深色圆角底 + 亮色图标突出，左侧空间完整留给内容区。适合需要整块展示内容的看板。'},
+ {id:3,name:'当前项展开文字',kw:'顶栏 · 选中展开',
+  key:'顶部菜单平时只显示图标，选中哪一项、哪一项就展开成带文字的长条，其余保持紧凑；切换时加弹性过渡，一排能容纳更多入口。',
+  use:'入口多、顶栏又写不下文字的页面。',
+  prompt:'顶部菜单平时只显示图标，当前选中项展开成带文字的胶囊长条（Expand-on-Active），切换带弹性过渡；其余菜单保持紧凑。适合入口多、顶栏放不下文字的页面。'},
+ {id:4,name:'图标菜单配大标题',kw:'左侧 · 大标题联动',
+  key:'侧边栏收成一列小图标，当前页面名称放大放在左上角，旁边接范围选择器；点击不同图标，大标题跟着切换，不用写字也清楚自己在哪一页。',
+  use:'页面不多的工具类后台。',
+  prompt:'侧边栏收成一列小图标（Icon Menu），当前页面名称放大放在左上角，旁边配范围选择器；点击图标时大标题跟随切换。适合页面不多的工具类后台。'},
+ {id:5,name:'图标轨加悬停提示',kw:'左侧 · 悬停出字',
+  key:'侧边栏只保留一列图标，鼠标停上去旁边才弹出文字提示；图标之间用细线分组，既省空间也不怕认错入口。',
+  use:'功能多、屏幕又不宽的后台。',
+  prompt:'侧边栏只保留图标竖轨（Icon Rail），悬停才显示文字提示（Tooltip），图标间用细线分组。适合功能多、屏幕窄的后台。'},
+ {id:6,name:'菜单旁快捷操作',kw:'侧边 · 圆形快捷键',
+  key:'把最常用的几个动作单独放在菜单旁边，做成一列圆形按钮；最重要的操作用亮色突出，需要执行时直接点击，不用先进页面再找按钮。',
+  use:'新建、导出这类天天要点的动作。',
+  prompt:'菜单旁放一列圆形快捷按钮（Quick Actions），高频操作（新建/导出等）用亮色突出，点击直接执行，无需先进页面。适合每天重复操作较多的后台。'}
+];
+var NAV=[
+ {id:'overview',label:'总览',icon:'i-grid'},
+ {id:'analytics',label:'分析',icon:'i-chart'},
+ {id:'orders',label:'订单',icon:'i-bag'},
+ null,
+ {id:'customers',label:'客户',icon:'i-users'},
+ {id:'products',label:'商品',icon:'i-box'},
+ {id:'settings',label:'设置',icon:'i-gear'}
+];
+var QUICK=[
+ {id:'new',label:'新建',icon:'i-plus',primary:true},
+ {id:'export',label:'导出',icon:'i-dl'},
+ {id:'share',label:'分享',icon:'i-share'},
+ {id:'refresh',label:'刷新',icon:'i-refresh'}
+];
+var PAGE_TITLE={overview:'经营驾驶舱',analytics:'数据分析',orders:'订单管理',customers:'客户列表',products:'商品管理',settings:'系统设置'};
+var KPI={
+ 今日:{vals:[68400,6842,3.18,468],deltas:[{t:'+12.4%',c:'up'},{t:'+5.1%',c:'up'},{t:'−0.5pp',c:'down'},{t:'+6.4%',c:'up'}],fmt:['money','num','pct','money']},
+ 本周:{vals:[486200,21842,3.42,486],deltas:[{t:'+12.4%',c:'up'},{t:'+5.1%',c:'up'},{t:'−0.3pp',c:'down'},{t:'+8.2%',c:'up'}],fmt:['money','num','pct','money']},
+ 本月:{vals:[1286000,92460,3.66,502],deltas:[{t:'+9.8%',c:'up'},{t:'+7.2%',c:'up'},{t:'+0.4pp',c:'up'},{t:'+10.1%',c:'up'}],fmt:['money','num','pct','money']}
+};
+var KPI_LABELS=['营收','活跃用户','转化率','客单价'];
+var SPARK=[
+ [32,38,35,44,41,52,48,58],
+ [20,24,22,28,31,30,36,38],
+ [2.8,3.0,2.9,3.2,3.1,3.3,3.2,3.4],
+ [380,410,400,440,430,470,460,486]
+];
+var ORDERS=[
+ ['#SO-20261017-001','杭州云杉科技','直接访问','¥ 12,800','已完成','done'],
+ ['#SO-20261017-002','上海青禾贸易','自然搜索','¥ 8,240','配送中','ship'],
+ ['#SO-20261017-003','广州南屿传媒','社媒引流','¥ 15,600','已完成','done'],
+ ['#SO-20261017-004','深圳鲸落电商','广告投放','¥ 6,980','待支付','wait'],
+ ['#SO-20261017-005','成都白鹭网络','自然搜索','¥ 3,450','已完成','done'],
+ ['#SO-20261017-006','北京远山零售','直接访问','¥ 9,860','配送中','ship']
+];
+var TREND=[9.2,10.1,9.6,10.8,11.2,10.5,11.8,12.4,11.9,12.8,13.1,12.6,13.4,14.2,13.7,14.5,15.1,14.8,15.6,16.2,15.7,16.4,17.1,16.6,17.4,18.1,17.6,18.2,18.9,19.4];
+var CHANNEL=[{name:'自然搜索',v:42},{name:'直接访问',v:28},{name:'社媒引流',v:19},{name:'广告投放',v:11}];
+var CATS={x:['数码配件','家居生活','美妆个护','食品生鲜','服饰鞋包','图书文娱'],v:[38,32,27,24,19,12]};
+
+/* ===== 工具 ===== */
+function $(id){return document.getElementById(id)}
+function svgIcon(id){return '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#'+id+'" xlink:href="#'+id+'"></use></svg>'}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+var toastTimer=null;
+function toast(msg){
+  var t=$('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show')},2200);
+}
+
+/* ===== 渲染 ===== */
+function renderTabs(){
+  var box=$('tabs');box.innerHTML='';
+  PATTERNS.forEach(function(p,i){
+    var b=document.createElement('button');
+    b.type='button';b.className='tab'+(i===0?' on':'');
+    b.innerHTML='<span class="n">0'+(i+1)+'</span><b>'+esc(p.name)+'</b><small>'+esc(p.kw)+'</small>';
+    b.onclick=function(){selectPattern(i)};
+    box.appendChild(b);
+  });
+}
+function renderNav(){
+  var sb=$('sidebar'),tb=$('topbar');sb.innerHTML='';tb.innerHTML='';
+  NAV.forEach(function(n){
+    if(!n){var g=document.createElement('div');g.className='sb-group';sb.appendChild(g);return}
+    var s=document.createElement('button');
+    s.type='button';s.className='sb-item'+(n.id==='overview'?' on':'');
+    s.setAttribute('data-nav',n.id);
+    s.innerHTML=svgIcon(n.icon)+'<span class="lbl">'+esc(n.label)+'</span><span class="tip">'+esc(n.label)+'</span>';
+    s.onclick=function(){navClick(n,s)};
+    sb.appendChild(s);
+    var t=document.createElement('button');
+    t.type='button';t.className='tb-item'+(n.id==='overview'?' on':'');
+    t.setAttribute('data-nav',n.id);
+    t.innerHTML=svgIcon(n.icon)+'<span class="lbl">'+esc(n.label)+'</span>';
+    t.onclick=function(){navClick(n,t)};
+    tb.appendChild(t);
+  });
+}
+function renderQuick(){
+  var q=$('quickrail');q.innerHTML='';
+  QUICK.forEach(function(a){
+    var b=document.createElement('button');
+    b.type='button';b.className='q-btn'+(a.primary?' primary':'');
+    b.innerHTML=svgIcon(a.icon)+'<span class="tip">'+esc(a.label)+'</span>';
+    b.onclick=function(){toast('演示：触发「'+a.label+'」动作（真实项目接入对应流程）')};
+    q.appendChild(b);
+  });
+}
+function navClick(n,el){
+  document.querySelectorAll('.sb-item,.tb-item').forEach(function(x){x.classList.remove('on')});
+  el.classList.add('on');
+  var cur=$('app').className.indexOf('pt4')>-1;
+  if(cur){$('pageTitle').textContent=PAGE_TITLE[n.id];$('pageSub').textContent='经营驾驶舱 · 示例数据 · 单位万元'}
+  else{toast('演示：已切换到「'+n.label+'」')}
+}
+function renderKpis(range){
+  var d=KPI[range],box=$('kpis');box.innerHTML='';
+  var colors=['#0E7C66','#0E7C66','#B85C4A','#0E7C66'];
+  d.vals.forEach(function(v,i){
+    var sp=SPARK[i];
+    var pts=sp.map(function(y,j){
+      var x=6+(j/(sp.length-1))*76,yy=28-((y-Math.min.apply(null,sp))/(Math.max.apply(null,sp)-Math.min.apply(null,sp)||1))*22;
+      return (x.toFixed(1))+','+(yy.toFixed(1));
+    }).join(' ');
+    var delta=d.deltas[i],c=delta.c==='up'?'up':(delta.c==='down'?'down':'neutral');
+    var card=document.createElement('div');card.className='kpi';
+    card.innerHTML='<div class="lbl">'+KPI_LABELS[i]+'</div><div class="val tnum">'+fmtNum(v,d.fmt[i])+'</div>'+
+      '<div class="delta '+c+' tnum">'+esc(delta.t)+' 较上周期</div>'+
+      '<div class="spark"><svg viewBox="0 0 88 34" aria-hidden="true"><polygon points="0,34 '+pts+' 88,34" fill="'+colors[i]+'" opacity=".08"></polygon><polyline points="'+pts+'" fill="none" stroke="'+colors[i]+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>';
+    box.appendChild(card);
+  });
+}
+function fmtNum(v,fmt){
+  if(fmt==='pct')return v.toFixed(2)+'%';
+  if(fmt==='money'){return v>=100000?('¥ '+(v/10000).toFixed(1)+' 万'):('¥ '+v.toLocaleString('en-US'))}
+  return v.toLocaleString('en-US');
+}
+function renderOrders(){
+  var b=$('ordersBody');b.innerHTML='';
+  ORDERS.forEach(function(r){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td><td class="tnum">'+esc(r[3])+'</td>'+
+      '<td><span class="status '+r[5]+'">'+esc(r[4])+'</span></td>';
+    b.appendChild(tr);
+  });
+}
+
+/* ===== 方案切换 ===== */
+var curIdx=0;
+function selectPattern(i){
+  curIdx=i;
+  var p=PATTERNS[i];
+  var app=$('app');
+  app.className='app pt'+p.id;
+  document.querySelectorAll('.tab').forEach(function(t,j){t.classList.toggle('on',j===i)});
+  $('framePtName').textContent='方案 '+(i+1)+' · '+p.name;
+  $('infoKey').innerHTML='<b>'+esc(p.name)+'</b> —— '+esc(p.key);
+  $('infoUse').textContent=p.use;
+  $('promptTxt').textContent=p.prompt;
+  document.querySelectorAll('.sb-item').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-nav')==='overview')});
+  document.querySelectorAll('.tb-item').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-nav')==='overview')});
+  $('pageTitle').textContent='经营驾驶舱';
+  $('pageSub').textContent='2026-10-17 · 示例数据 · 单位万元';
+  setTimeout(function(){charts.forEach(function(c){c.resize()})},420);
+}
+
+/* ===== 范围切换（KPI 数字滚动） ===== */
+function bindRanges(){
+  var btns=$('ranges').querySelectorAll('button');
+  btns.forEach(function(b){
+    b.onclick=function(){
+      btns.forEach(function(x){x.classList.remove('on')});b.classList.add('on');
+      rollKpis(b.getAttribute('data-r'));
+    };
+  });
+}
+var currentRange='本周';
+function rollKpis(range){
+  if(range===currentRange)return;currentRange=range;
+  var d=KPI[range];
+  document.querySelectorAll('.kpi').forEach(function(card,i){
+    var valEl=card.querySelector('.val');
+    var target=d.vals[i];
+    if(i===3){card.querySelector('.delta').textContent=d.deltas[i].t+' 较上周期';return}
+    card.querySelector('.delta').textContent=d.deltas[i].t+' 较上周期';
+    countUp(valEl,target,d.fmt[i],500);
+  });
+}
+function countUp(el,target,fmt,dur){
+  var start=performance.now(),from=0;
+  function step(now){
+    var p=Math.min(1,(now-start)/dur);p=1-Math.pow(1-p,3);
+    var v=from+(target-from)*p;
+    el.textContent=fmtNum(v,fmt);
+    if(p<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ===== 复制描述词 ===== */
+function bindCopy(){
+  $('copyBtn').onclick=function(){
+    var txt=$('promptTxt').textContent,btn=this;
+    function done(){btn.textContent='已复制';btn.classList.add('copied');setTimeout(function(){btn.textContent='复制描述词';btn.classList.remove('copied')},1600);toast('AI 描述词已复制到剪贴板')}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(done,function(){fallbackCopy(txt);done()});
+    }else{fallbackCopy(txt);done()}
+  };
+  $('moreBtn').onclick=function(){toast('演示：查看全部订单（真实项目接分页列表）')};
+}
+function fallbackCopy(txt){
+  var ta=document.createElement('textarea');
+  ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy')}catch(e){}
+  document.body.removeChild(ta);
+}
+
+/* ===== ECharts ===== */
+var charts=[];
+var AXIS={color:'#8A8F96',fontSize:11};
+function initCharts(){
+  if(typeof echarts==='undefined'){return}
+  var font='Noto Sans SC,PingFang SC,Microsoft YaHei,sans-serif';
+  /* 营收趋势 */
+  var c1=echarts.init($('chartTrend'));
+  var dates=[];var d0=new Date(2026,8,18);
+  for(var i=0;i<30;i++){var dd=new Date(d0.getTime()+i*864e5);dates.push((dd.getMonth()+1)+'-'+String(dd.getDate()).padStart(2,'0'))}
+  c1.setOption({
+    animationDuration:500,textStyle:{fontFamily:font},
+    grid:{left:8,right:14,top:14,bottom:6,containLabel:true},
+    tooltip:{trigger:'axis',confine:true,backgroundColor:'#191C20',borderWidth:0,textStyle:{color:'#fff',fontSize:12},axisPointer:{type:'line',lineStyle:{color:'rgba(25,28,32,.2)'}}},
+    xAxis:{type:'category',data:dates,boundaryGap:false,axisLine:{lineStyle:{color:'#E5E3DE'}},axisTick:{show:false},axisLabel:Object.assign({interval:4},AXIS)},
+    yAxis:{type:'value',axisLine:{show:false},axisTick:{show:false},axisLabel:AXIS,splitLine:{lineStyle:{color:'#EEECE7'}}},
+    series:[{name:'营收',type:'line',data:TREND,smooth:true,symbol:'circle',symbolSize:4,showSymbol:false,
+      lineStyle:{width:2.4,color:'#0E7C66'},itemStyle:{color:'#0E7C66'},
+      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(14,124,102,.22)'},{offset:1,color:'rgba(14,124,102,0)'}])}}]
+  });
+  /* 渠道构成 */
+  var c2=echarts.init($('chartChannel'));
+  c2.setOption({
+    animationDuration:500,textStyle:{fontFamily:font},
+    tooltip:{trigger:'item',confine:true,backgroundColor:'#191C20',borderWidth:0,textStyle:{color:'#fff',fontSize:12},formatter:function(p){return p.name+'：'+p.value+'%（占比）'}},
+    legend:{bottom:0,itemWidth:9,itemHeight:9,textStyle:{color:'#5C6168',fontSize:11},icon:'circle'},
+    series:[{type:'pie',radius:['52%','74%'],center:['50%','42%'],
+      itemStyle:{borderColor:'#fff',borderWidth:2,borderRadius:4},
+      label:{show:false},data:CHANNEL.map(function(x){return {name:x.name,value:x.v,itemStyle:{color:x.name==='自然搜索'?'#0E7C66':(x.name==='直接访问'?'#C98A1E':(x.name==='社媒引流'?'#64748B':'#B85C4A'))}}})}]
+  });
+  /* 品类销售 */
+  var c3=echarts.init($('chartCat'));
+  c3.setOption({
+    animationDuration:500,textStyle:{fontFamily:font},
+    grid:{left:8,right:14,top:26,bottom:6,containLabel:true},
+    tooltip:{trigger:'axis',confine:true,backgroundColor:'#191C20',borderWidth:0,textStyle:{color:'#fff',fontSize:12},axisPointer:{type:'shadow'}},
+    xAxis:{type:'category',data:CATS.x,axisLine:{lineStyle:{color:'#E5E3DE'}},axisTick:{show:false},axisLabel:AXIS},
+    yAxis:{type:'value',axisLine:{show:false},axisTick:{show:false},axisLabel:AXIS,splitLine:{lineStyle:{color:'#EEECE7'}}},
+    series:[{name:'销售额',type:'bar',data:CATS.v,barWidth:20,
+      itemStyle:{color:'#0E7C66',borderRadius:[6,6,0,0]},
+      label:{show:true,position:'top',color:'#5C6168',fontSize:11,fontFamily:font,fontWeight:600}}]
+  });
+  charts=[c1,c2,c3];
+  window.addEventListener('resize',function(){charts.forEach(function(c){c.resize()})});
+}
+
+/* ===== 启动 ===== */
+renderTabs();
+renderNav();
+renderQuick();
+renderKpis(currentRange);
+renderOrders();
+bindRanges();
+bindCopy();
+selectPattern(0);
+initCharts();
+setTimeout(function(){if(typeof echarts==='undefined'){toast('图表库加载失败，请联网后刷新页面')}},4000);
+</script>
+</body>
+</html>

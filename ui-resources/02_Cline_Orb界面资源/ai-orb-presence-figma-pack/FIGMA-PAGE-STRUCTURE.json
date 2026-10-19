@@ -1,0 +1,154 @@
+{
+  "fileSuggestion": "AI Orb — Presence Visual Design",
+  "pages": [
+    {
+      "name": "A · 8 States Overview",
+      "import": "frames/A-8-states-overview.svg"
+    },
+    {
+      "name": "B · Ready / Wake",
+      "import": "frames/B-ready-wake.svg"
+    },
+    {
+      "name": "C · Runtime Journey",
+      "import": "frames/C-runtime-journey.svg"
+    },
+    {
+      "name": "D · Visual Anatomy",
+      "import": "frames/D-visual-anatomy.svg"
+    },
+    {
+      "name": "Components · Orbs",
+      "import": "orbs/*.svg"
+    }
+  ],
+  "states": [
+    {
+      "index": 1,
+      "presence": "dormant",
+      "file": "orbs/1-dormant.svg",
+      "palette": {
+        "primary": "#7f9fb8",
+        "accent": "#cfe9ff",
+        "deep": "#1a2430",
+        "glow": "#5a7f9a",
+        "label": "Dormant",
+        "energy": "quiet breath",
+        "motion": "breathe 5.2s · near-still orbit",
+        "signal": "low ember core + sparse dust"
+      }
+    },
+    {
+      "index": 2,
+      "presence": "ready",
+      "file": "orbs/2-ready.svg",
+      "palette": {
+        "primary": "#6ee7ff",
+        "accent": "#e0f7ff",
+        "deep": "#0d2a38",
+        "glow": "#38bdf8",
+        "label": "Ready",
+        "energy": "gathered listening",
+        "motion": "stable presence · soft radial listen",
+        "signal": "concentric listen field + tight core"
+      }
+    },
+    {
+      "index": 3,
+      "presence": "thinking",
+      "file": "orbs/3-thinking.svg",
+      "palette": {
+        "primary": "#8b7cf6",
+        "accent": "#ddd2ff",
+        "deep": "#1a1430",
+        "glow": "#a78bfa",
+        "label": "Thinking",
+        "energy": "winding interior",
+        "motion": "differential spin · soft uncertainty",
+        "signal": "spiral ribbons, no single focus"
+      }
+    },
+    {
+      "index": 4,
+      "presence": "working",
+      "file": "orbs/4-working.svg",
+      "palette": {
+        "primary": "#60a5fa",
+        "accent": "#dbeafe",
+        "deep": "#0c1e3a",
+        "glow": "#3b82f6",
+        "label": "Working",
+        "energy": "directed flow",
+        "motion": "comet trails · orbit drive",
+        "signal": "streaked vectors around core"
+      }
+    },
+    {
+      "index": 5,
+      "presence": "waiting",
+      "file": "orbs/5-waiting.svg",
+      "palette": {
+        "primary": "#fb923c",
+        "accent": "#ffedd5",
+        "deep": "#2a1608",
+        "glow": "#f97316",
+        "label": "Waiting",
+        "energy": "held suspend",
+        "motion": "paused orbit · open gap",
+        "signal": "broken ring gate + suspended core"
+      }
+    },
+    {
+      "index": 6,
+      "presence": "success",
+      "file": "orbs/6-success.svg",
+      "palette": {
+        "primary": "#34d399",
+        "accent": "#d1fae5",
+        "deep": "#06281c",
+        "glow": "#10b981",
+        "label": "Success",
+        "energy": "short release",
+        "motion": "outward pulse → settle",
+        "signal": "expanding wave remnant + calm core"
+      }
+    },
+    {
+      "index": 7,
+      "presence": "failed",
+      "file": "orbs/7-failed.svg",
+      "palette": {
+        "primary": "#f87171",
+        "accent": "#ffe4e6",
+        "deep": "#2a0d10",
+        "glow": "#ef4444",
+        "label": "Failed",
+        "energy": "interruption",
+        "motion": "contract · fracture · damp",
+        "signal": "shrunk core + jagged veins + torn ring"
+      }
+    },
+    {
+      "index": 8,
+      "presence": "disabled",
+      "file": "orbs/8-disabled.svg",
+      "palette": {
+        "primary": "#5b5b66",
+        "accent": "#a1a1aa",
+        "deep": "#121216",
+        "glow": "#3f3f46",
+        "label": "Disabled",
+        "energy": "spent",
+        "motion": "no energy · shell only",
+        "signal": "hollow core, no particles, no field"
+      }
+    }
+  ],
+  "acceptance": "Cover all labels; orb body alone must communicate presence.",
+  "frozen": [
+    "F:\\Cline\\ai-orb-plugin",
+    "F:\\Cline\\plugin-sdk",
+    "F:\\Cline\\plugin-runtime",
+    "F:\\AI-Projects\\experiments\\ai-employee-os-design-system"
+  ]
+}

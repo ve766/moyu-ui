@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>创作面板 · 从第一版到三版风格</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='5' width='22' height='22' rx='4' fill='none' stroke='%230F6B5C' stroke-width='3'/%3E%3Crect x='12' y='12' width='8' height='8' rx='2' fill='%23A5823A'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --paper:#F4F1EA; --paper-2:#EDE9DD; --surface:#FFFFFF; --surface-2:#FAF8F2;
+  --ink:#1D2B25; --ink-2:#4C5C54; --muted:#7A867E; --faint:#AAB4AC;
+  --brand:#0F6B5C; --brand-2:#0D5A4D; --brand-ink:#FFFFFF;
+  --accent:#A5823A; --hair:rgba(29,43,37,.12); --hair-2:rgba(29,43,37,.22);
+  --radius:12px; --radius-sm:8px; --radius-lg:18px;
+  --font:'Noto Sans SC',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+  --display:'Noto Serif SC','Songti SC',serif;
+  --sh1:0 2px 10px rgba(29,43,37,.07); --sh2:0 14px 34px -12px rgba(29,43,37,.22);
+  --tick:cubic-bezier(.34,1.4,.6,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--paper);color:var(--ink);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+::selection{background:var(--brand);color:#fff}
+button{font-family:inherit}
+svg{display:block}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.2em;color:var(--brand);border:1px solid var(--hair);border-radius:999px;padding:5px 14px}
+
+/* 顶栏 */
+.topbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 90%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--hair)}
+.topbar .wrap{display:flex;align-items:center;gap:12px;height:58px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:16px}
+.logo .mark{width:26px;height:26px;border-radius:8px;border:2.5px solid var(--brand);position:relative;flex:none}
+.logo .mark::after{content:'';position:absolute;inset:0;margin:auto;width:8px;height:8px;border-radius:3px;background:var(--accent)}
+.tb-src{margin-left:auto;font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.tb-src b{color:var(--ink-2)}
+
+/* Hero */
+.hero{padding:44px 0 22px}
+.hero h1{font-family:var(--display);font-size:clamp(28px,4.6vw,42px);font-weight:900;line-height:1.22;margin:14px 0 10px}
+.hero h1 em{font-style:normal;color:var(--brand)}
+.hero .sub{max-width:660px;color:var(--ink-2);font-size:14.5px}
+
+/* ===== 步骤条 ===== */
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin:24px 0 18px}
+.steps button{border:1px solid var(--hair);background:var(--surface);border-radius:999px;padding:7px 15px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .22s;display:flex;align-items:center;gap:7px}
+.steps button .no{width:17px;height:17px;border-radius:50%;background:var(--paper-2);color:var(--muted);font-size:10px;display:flex;align-items:center;justify-content:center;flex:none;transition:all .22s}
+.steps button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.steps button.on .no{background:rgba(255,255,255,.22);color:#fff}
+.steps button.done{color:var(--brand);border-color:color-mix(in srgb,var(--brand) 40%,transparent)}
+.steps button.done .no{background:var(--brand);color:#fff}
+
+/* ===== 舞台区 ===== */
+.stage-wrap{border:1px solid var(--hair);border-radius:22px;background:var(--surface);padding:16px;overflow:hidden}
+.stage{position:relative;border-radius:14px;overflow:hidden}
+.stage .stage-note{position:absolute;top:12px;left:12px;z-index:5;max-width:min(420px,72%);font-size:11.5px;line-height:1.55;color:var(--ink-2);background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:9px 12px;box-shadow:var(--sh1);pointer-events:none;transition:opacity .3s}
+.stage .stage-note b{color:var(--brand);font-size:10px;letter-spacing:.1em;display:block;margin-bottom:2px}
+.stage .stage-note .vtag{font-size:9px;color:var(--faint)}
+.stage-canvas{display:flex;justify-content:center;padding:64px 10px 22px;background:var(--paper-2);min-height:560px;position:relative;transition:background .4s}
+@media (min-width:900px){.stage-canvas{padding:64px 40px 30px}}
+
+/* ===== 创作面板 ===== */
+.panel{width:100%;max-width:880px;border-radius:14px;overflow:hidden;background:var(--p-bg,#fff);color:var(--p-ink,#000);border:1px solid var(--p-line,#ccc);transition:all .5s;font-size:13px;box-shadow:var(--p-shadow,none)}
+.panel *{box-sizing:border-box}
+.p-top{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--p-line,#ccc);background:var(--p-top,#fafafa)}
+.p-top .plogo{font-weight:700;font-family:var(--display);font-size:14px;display:flex;align-items:center;gap:8px}
+.p-top .plogo i{width:14px;height:14px;border-radius:4px;background:var(--p-brand,#444);flex:none}
+.p-top .psearch{margin-left:6px;flex:1;max-width:300px;display:flex;align-items:center;gap:7px;border:1px solid var(--p-line,#ccc);border-radius:var(--p-radius,0);padding:6px 11px;color:var(--p-mut,#666);font-size:12px;background:var(--p-card,#fff)}
+.p-top .psearch svg{width:13px;height:13px;flex:none}
+.p-top .puser{margin-left:auto;display:flex;align-items:center;gap:9px}
+.p-top .puser .av{width:26px;height:26px;border-radius:50%;background:var(--p-brand,#444);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.p-top .puser .nm{font-size:11px;color:var(--p-mut,#666)}
+.p-orb{width:30px;height:30px;border-radius:50%;flex:none;position:relative;overflow:hidden;display:none}
+.p-orb i{position:absolute;inset:0;border-radius:50%;animation:orb6s 6s ease-in-out infinite}
+@keyframes orb6s{0%,100%{transform:scale(.86);opacity:.72}50%{transform:scale(1.07);opacity:1}}
+.p-body{display:flex;min-height:430px}
+.p-side{width:150px;flex:none;border-right:1px solid var(--p-line,#ccc);padding:12px 9px;display:flex;flex-direction:column;gap:2px}
+.p-side a{display:flex;align-items:center;gap:8px;font-size:12px;padding:8px 11px;border-radius:var(--p-radius,0);color:var(--p-mut,#666);cursor:pointer;text-decoration:none;transition:all .2s;position:relative}
+.p-side a i{width:8px;height:8px;border-radius:3px;flex:none;background:var(--p-line,#999)}
+.p-side a.on{background:var(--p-brand,#444);color:#fff;font-weight:600}
+.p-side a.on i{background:rgba(255,255,255,.85)}
+.p-main{flex:1;min-width:0;padding:16px 18px;background:var(--p-cardbg,transparent)}
+
+/* 视图通用 */
+.view{display:none}
+.view.on{display:block}
+.view h3{font-size:14px;font-family:var(--display);display:flex;align-items:center;gap:8px;margin-bottom:13px}
+.view h3 span{font-size:9.5px;color:var(--p-mut,#888);font-weight:500;font-family:var(--font);letter-spacing:.06em;margin-left:auto}
+.grid-2{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:560px){.grid-2{grid-template-columns:1fr 1fr}}
+.grid-3{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:560px){.grid-3{grid-template-columns:repeat(3,1fr)}}
+.p-card{border:1px solid var(--p-line,#ccc);border-radius:var(--p-radius,0);background:var(--p-card,#fff);padding:13px 14px;box-shadow:var(--p-shadow-card,none);transition:all .3s}
+.p-card b{font-size:12.5px;display:flex;align-items:center;gap:7px}
+.p-card b i{width:9px;height:9px;border-radius:50%;flex:none;background:var(--p-accent,#888)}
+.p-card p{font-size:11px;color:var(--p-mut,#666);margin-top:4px;line-height:1.55}
+.p-num{font-size:20px;font-weight:800;font-family:var(--display);display:block;margin-top:6px}
+.p-bar{height:5px;border-radius:var(--p-radius,0);background:var(--p-line,#ddd);margin-top:9px;overflow:hidden}
+.p-bar i{display:block;height:100%;width:0;background:var(--p-brand,#444);border-radius:var(--p-radius,0);transition:width 1s ease}
+.p-list{list-style:none}
+.p-list li{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--p-line,#ccc);font-size:11.5px}
+.p-list li:last-child{border-bottom:0}
+.p-list .d{width:7px;height:7px;border-radius:50%;background:var(--p-accent,#888);flex:none}
+.p-list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--p-ink,#222)}
+.p-list .s{font-size:9.5px;color:var(--p-mut,#888);border:1px solid var(--p-line,#ccc);border-radius:var(--p-radius,0);padding:1px 7px;flex:none}
+.p-btn{border:0;border-radius:var(--p-radius,0);background:var(--p-brand,#444);color:#fff;font-size:12.5px;font-weight:600;padding:9px 20px;cursor:pointer;transition:transform .14s,background .2s}
+.p-btn:active{transform:scale(var(--press,1))}
+.p-btn.ghost{background:transparent;border:1px solid var(--p-line,#ccc);color:var(--p-ink,#333)}
+.p-input{width:100%;border:1px solid var(--p-line,#ccc);border-radius:var(--p-radius,0);background:var(--p-card,#fff);padding:9px 12px;font-size:13px;color:var(--p-ink,#222);font-family:inherit}
+.p-input:focus{outline:2px solid var(--p-brand,#444);outline-offset:1px}
+.p-tag{display:inline-block;font-size:9.5px;border:1px solid var(--p-line,#ccc);border-radius:var(--p-radius,0);padding:1px 7px;color:var(--p-mut,#888)}
+.p-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px}
+.p-table th,.p-table td{border:1px solid var(--p-line,#ccc);padding:7px 9px;text-align:left;color:var(--p-ink,#333)}
+.p-table th{background:var(--p-top,#f6f6f6);font-weight:600;font-size:10.5px}
+.p-table td{color:var(--p-mut,#666)}
+.p-table td:first-child{color:var(--p-ink,#333);font-weight:500}
+.p-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px}
+.p-cal .c{border:1px solid var(--p-line,#ccc);border-radius:var(--p-radius,0);padding:8px 4px;text-align:center;font-size:10px;color:var(--p-mut,#888);min-height:58px;background:var(--p-card,#fff)}
+.p-cal .c b{display:block;font-size:11px;color:var(--p-ink,#333);margin-bottom:3px}
+.p-cal .c .ev{font-size:8.5px;color:#fff;background:var(--p-brand,#444);border-radius:3px;padding:1px 4px;display:inline-block;margin-top:2px}
+.p-cal .c.today{border-color:var(--p-accent,#888)}
+
+/* —— 版本：v1 朴素（功能全但不好看） —— */
+.ver-v1{--p-bg:#FFFFFF;--p-top:#F2F2F2;--p-card:#FFFFFF;--p-cardbg:#FFFFFF;--p-ink:#222222;--p-mut:#666666;--p-line:#999999;--p-brand:#336699;--p-accent:#888888;--p-radius:0px;--p-shadow:none;--p-shadow-card:none;--p-press:1}
+.ver-v1 .p-search,.ver-v1 .p-input,.ver-v1 .p-btn{border-radius:0}
+.ver-v1 .p-side a.on{background:#336699}
+.ver-v1 .p-top .plogo i{border-radius:0}
+
+/* —— 版本：浅灰版 —— */
+.ver-gray{--p-bg:#EFEFE9;--p-top:#EFEFE9;--p-card:#FAFAF6;--p-cardbg:#EFEFE9;--p-ink:#2B2B26;--p-mut:#8B8B80;--p-line:#D9D9CE;--p-brand:#6B6B60;--p-accent:#B0A98E;--p-radius:9px;--p-shadow:0 1px 0 rgba(43,43,38,.06);--p-shadow-card:0 1px 3px rgba(43,43,38,.08);--p-press:.96;--p-press:1}
+.ver-gray .p-side{background:transparent}
+.ver-gray .p-card:hover{transform:translateY(-1px)}
+
+/* —— 版本：银黑版 —— */
+.ver-silver{--p-bg:#131417;--p-top:#17181C;--p-card:#1D1E22;--p-cardbg:#131417;--p-ink:#E8E8EA;--p-mut:#8A8B92;--p-line:#2A2B30;--p-brand:#C8C8CC;--p-accent:#9AA0A8;--p-radius:10px;--p-shadow:0 10px 30px -14px rgba(0,0,0,.6);--p-shadow-card:0 6px 18px -8px rgba(0,0,0,.55);--p-press:.96;--p-press:1}
+.ver-silver .p-card{border-color:#2F3036}
+.ver-silver .p-orb{display:block}
+.ver-silver .p-orb i{background:radial-gradient(circle at 38% 32%,#F5F5F7,#C8C8CC 55%,#6E6E76);box-shadow:0 0 16px rgba(200,200,204,.6)}
+.ver-silver .p-top .plogo i{background:#C8C8CC}
+.ver-silver .p-table th{background:#17181C;color:#C8C8CC}
+.ver-silver .p-cal .c .ev{background:#C8C8CC;color:#131417}
+.ver-silver .p-btn{background:#C8C8CC;color:#131417}
+.ver-silver .p-btn:active{background:#F0F0F2}
+
+/* —— 版本：新拟物版 —— */
+.ver-neo{--p-bg:#E4E1D8;--p-top:#E4E1D8;--p-card:#E4E1D8;--p-cardbg:#E4E1D8;--p-ink:#3C3A33;--p-mut:#979187;--p-line:rgba(255,255,255,.55);--p-brand:#5A564C;--p-accent:#B5482F;--p-radius:14px;--p-shadow:8px 8px 16px rgba(92,88,79,.24),-8px -8px 16px rgba(255,255,255,.9);--p-shadow-card:5px 5px 10px rgba(92,88,79,.26),-5px -5px 10px rgba(255,255,255,.85);--p-press:.96;--p-press:1}
+.ver-neo .p-top{border-bottom:1px solid rgba(255,255,255,.6)}
+.ver-neo .p-card{border-color:rgba(255,255,255,.5)}
+.ver-neo .p-card:hover{transform:translateY(-1px)}
+.ver-neo .p-orb{display:block}
+.ver-neo .p-orb i{background:radial-gradient(circle at 38% 32%,#E87B5E,#B5482F 60%,#7E2F1E);box-shadow:0 0 18px rgba(181,72,47,.65)}
+.ver-neo .p-btn{background:#E4E1D8;color:#3C3A33;border:1px solid rgba(255,255,255,.5);box-shadow:3px 3px 6px rgba(92,88,79,.3),-3px -3px 6px rgba(255,255,255,.85)}
+.ver-neo .p-btn:active{box-shadow:inset 3px 3px 6px rgba(92,88,79,.3),inset -3px -3px 6px rgba(255,255,255,.85)}
+.ver-neo .p-input{border:1px solid rgba(255,255,255,.5);box-shadow:inset 2px 2px 4px rgba(92,88,79,.18),inset -2px -2px 4px rgba(255,255,255,.7)}
+
+/* 朴素版搜索/输入 */
+.ver-v1 .p-search,.ver-v1 .p-input{background:#fff;border:1px solid #999}
+
+/* ===== 说明区 ===== */
+.info-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+@media (min-width:760px){.info-grid{grid-template-columns:1fr 1fr}}
+.info{border:1px solid var(--hair);border-radius:var(--radius);background:var(--surface);padding:14px 16px}
+.info h5{font-size:12.5px;font-family:var(--display);display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.info h5 span{font-size:9px;font-weight:600;color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 40%,transparent);border-radius:999px;padding:1px 8px}
+.info p{font-size:12px;color:var(--ink-2);line-height:1.65}
+.info .v{font-size:10px;color:var(--faint);margin-top:6px}
+
+/* ===== 细节实验室 ===== */
+.lab{border:1px solid var(--hair);border-radius:var(--radius-lg);background:var(--surface);padding:18px;margin-top:14px}
+.lab h4{font-family:var(--display);font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.lab-row{display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:760px){.lab-row{grid-template-columns:1fr 1fr}}
+.lab-item{border:1px solid var(--hair);border-radius:var(--radius);padding:13px 15px;background:var(--surface-2)}
+.lab-item b{font-size:12.5px;display:block;margin-bottom:5px}
+.lab-item p{font-size:11.5px;color:var(--muted);margin-bottom:10px;line-height:1.55}
+.press-demo{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.press-demo button{width:92px;padding:11px 0;font-size:12.5px;font-weight:600;border:0;border-radius:10px;background:var(--brand);color:#fff;cursor:pointer;transition:transform .14s}
+.press-demo button:active{transform:scale(var(--cur-press,1))}
+.press-demo .sels{display:flex;gap:6px;flex-wrap:wrap}
+.press-demo .sels button{border:1px solid var(--hair);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 12px;font-size:11px;width:auto}
+.press-demo .sels button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.cover-demo{position:relative;width:150px;height:96px;border-radius:10px;overflow:hidden;background:var(--paper-2);cursor:pointer;flex:none}
+.cover-demo .cv{position:absolute;inset:0;background:linear-gradient(135deg,var(--brand),var(--accent));transition:transform .65s cubic-bezier(.4,0,.2,1);transform:scale(1)}
+.cover-demo .cv::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.25),transparent 60%)}
+.cover-demo:hover .cv{transform:scale(1.12) rotate(1.2deg)}
+.cover-demo .cap{position:absolute;left:9px;bottom:8px;right:9px;color:#fff;font-size:10px;font-weight:600;transition:none}
+.cover-demo .tx{font-size:10px;color:var(--muted);margin-top:8px}
+
+/* ===== 共性表 ===== */
+.cv2{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+@media (min-width:760px){.cv2{grid-template-columns:1fr 1fr}}
+.cv2 .box{border:1px solid var(--hair);border-radius:var(--radius);padding:14px 16px;background:var(--surface)}
+.cv2 .box b{font-size:12.5px;display:block;margin-bottom:8px}
+.cv2 .box ul{list-style:none}
+.cv2 .box li{font-size:11.5px;color:var(--ink-2);padding:5px 0 5px 16px;position:relative;line-height:1.5}
+.cv2 .box li::before{content:'';position:absolute;left:0;top:11px;width:7px;height:7px;border-radius:2px;background:var(--brand)}
+.cv2 .box.var li::before{background:var(--accent)}
+
+footer{border-top:1px solid var(--hair);padding:26px 0 44px;margin-top:40px}
+footer p{font-size:11.5px;color:var(--muted);line-height:1.8}
+footer .src{font-size:10.5px;color:var(--faint);margin-top:6px}
+
+/* Toast */
+.lab-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(16px);background:var(--ink);color:var(--paper);font-size:12px;padding:9px 17px;border-radius:999px;opacity:0;pointer-events:none;transition:all .3s var(--tick);z-index:99;box-shadow:var(--sh2);max-width:86vw;text-align:center}
+.lab-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶栏 ===== -->
+<header class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="mark"></span>创作面板 · 演进复现</div>
+    <span class="tb-src">来自 <b>Xuan子</b>《AI做界面：先做功能vs先做UI？》</span>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">按视频原流程 · 一步一步等量复现</span>
+    <h1>从「功能都有了，界面<em>不好看</em>」<br>到三版风格成体系</h1>
+    <p class="sub">视频里的顺序：先搭功能框架 → 做出第一版（功能全但不美）→ 拆参考定风格 → 浅灰 / 银黑 / 新拟物三版 → 加主题元素、调手感细节。下方可逐步回放这个演进过程。</p>
+  </div>
+</section>
+
+<!-- ===== 步骤条 ===== -->
+<section class="wrap">
+  <div class="steps" id="steps">
+    <button type="button" data-s="0" class="on"><span class="no">0</span>功能框架</button>
+    <button type="button" data-s="1"><span class="no">1</span>第一版 · 朴素</button>
+    <button type="button" data-s="2"><span class="no">2</span>拆参考定风格</button>
+    <button type="button" data-s="3"><span class="no">3</span>浅灰版</button>
+    <button type="button" data-s="4"><span class="no">4</span>银黑版</button>
+    <button type="button" data-s="5"><span class="no">5</span>新拟物版</button>
+  </div>
+</section>
+
+<!-- ===== 舞台 ===== -->
+<section class="wrap">
+  <div class="stage-wrap">
+    <div class="stage">
+      <div class="stage-note" id="stageNote"><b id="noteTag">STEP 0 · 功能框架</b><span id="noteText">先把六个核心模块理清楚：工作台、作品库、创作台、选题池、日历表、数据库——每个模块代表什么、内容之间怎么关联，先有框架再交给 AI。</span><span class="vtag" id="noteSrc">[V] 视频逐字稿</span></div>
+      <div class="stage-canvas" id="stageCanvas">
+        <!-- 框架关系图视图 -->
+        <div id="frameView" style="display:none">
+          <div style="font-family:var(--display);font-size:15px;font-weight:700;margin-bottom:14px;color:var(--ink)">创作面板 · 六模块内容框架关系图</div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:640px;margin:0 auto">
+            <div style="border:1px solid var(--hair);border-radius:12px;background:var(--surface);padding:13px 15px"><b style="font-size:13px;font-family:var(--display);display:block">01 工作台</b><p style="font-size:11px;color:var(--muted);margin-top:4px">今日待办 · 近期数据 · 快捷入口</p><div style="font-size:9.5px;color:var(--faint);margin-top:6px;border-top:1px dashed var(--hair);padding-top:5px">关联 · 作品库 / 创作台 / 日历表</div></div>
+            <div style="border:1px solid var(--hair);border-radius:12px;background:var(--surface);padding:13px 15px"><b style="font-size:13px;font-family:var(--display);display:block">02 作品库</b><p style="font-size:11px;color:var(--muted);margin-top:4px">已发布内容总档 · 标题封面链接数据</p><div style="font-size:9.5px;color:var(--faint);margin-top:6px;border-top:1px dashed var(--hair);padding-top:5px">关联 · 创作台 / 选题池 / 数据库</div></div>
+            <div style="border:1px solid var(--hair);border-radius:12px;background:var(--surface);padding:13px 15px"><b style="font-size:13px;font-family:var(--display);display:block">03 创作台</b><p style="font-size:11px;color:var(--muted);margin-top:4px">写稿 · 配图 · 生成内容的地方</p><div style="font-size:9.5px;color:var(--faint);margin-top:6px;border-top:1px dashed var(--hair);padding-top:5px">关联 · 作品库 / 选题池</div></div>
+            <div style="border:1px solid var(--hair);border-radius:12px;background:var(--surface);padding:13px 15px"><b style="font-size:13px;font-family:var(--display);display:block">04 选题池</b><p style="font-size:11px;color:var(--muted);margin-top:4px">灵感与待做选题的收集处</p><div style="font-size:9.5px;color:var(--faint);margin-top:6px;border-top:1px dashed var(--hair);padding-top:5px">关联 · 创作台 / 日历表</div></div>
+            <div style="border:1px solid var(--hair);border-radius:12px;background:var(--surface);padding:13px 15px"><b style="font-size:13px;font-family:var(--display);display:block">05 日历表</b><p style="font-size:11px;color:var(--muted);margin-top:4px">发布排期与节奏管理</p><div style="font-size:9.5px;color:var(--faint);margin-top:6px;border-top:1px dashed var(--hair);padding-top:5px">关联 · 工作台 / 选题池 / 作品库</div></div>
+            <div style="border:1px solid var(--hair);border-radius:12px;background:var(--surface);padding:13px 15px"><b style="font-size:13px;font-family:var(--display);display:block">06 数据库</b><p style="font-size:11px;color:var(--muted);margin-top:4px">内容选题发布记录的结构化存储</p><div style="font-size:9.5px;color:var(--faint);margin-top:6px;border-top:1px dashed var(--hair);padding-top:5px">关联 · 全部模块（底层底座）</div></div>
+          </div>
+        </div>
+        <!-- 创作面板（v1 / 三版） -->
+        <div class="panel ver-v1" id="panel" style="display:none">
+          <div class="p-top">
+            <div class="plogo"><i></i>创作面板</div>
+            <div class="psearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>搜索作品 / 选题 / 数据</div>
+            <div class="puser"><span class="av">X</span><span class="nm">创作者</span><span class="p-orb"><i></i></span></div>
+          </div>
+          <div class="p-body">
+            <nav class="p-side" id="pSide">
+              <a data-v="0" class="on"><i></i>工作台</a>
+              <a data-v="1"><i></i>作品库</a>
+              <a data-v="2"><i></i>创作台</a>
+              <a data-v="3"><i></i>选题池</a>
+              <a data-v="4"><i></i>日历表</a>
+              <a data-v="5"><i></i>数据库</a>
+            </nav>
+            <div class="p-main">
+              <!-- 工作台 -->
+              <div class="view on" id="view0">
+                <h3>工作台<span>今日概览</span></h3>
+                <div class="grid-3">
+                  <div class="p-card"><b><i></i>本周待发</b><span class="p-num">3</span><p>选题池已排期内容，今天完成 1 篇</p><div class="p-bar"><i data-w="62"></i></div></div>
+                  <div class="p-card"><b><i></i>近 7 天发布</b><span class="p-num">4</span><p>平均完播率 61% · 评论互动上升</p><div class="p-bar"><i data-w="78"></i></div></div>
+                  <div class="p-card"><b><i></i>待处理事项</b><span class="p-num">5</span><p>2 篇待配图 · 3 个选题待排期</p><div class="p-bar"><i data-w="34"></i></div></div>
+                </div>
+                <div style="margin-top:12px" class="p-card">
+                  <b><i></i>今日待办</b>
+                  <ul class="p-list">
+                    <li><span class="d"></span><span class="t">给《AI做界面·三版风格》配封面</span><span class="s">今天</span></li>
+                    <li><span class="d"></span><span class="t">把选题池 3 条灵感排进日历表</span><span class="s">今天</span></li>
+                    <li><span class="d"></span><span class="t">检查《按钮动效》发布数据</span><span class="s">已做</span></li>
+                  </ul>
+                </div>
+              </div>
+              <!-- 作品库 -->
+              <div class="view" id="view1">
+                <h3>作品库<span>已发布内容总档</span></h3>
+                <div class="grid-3" id="libGrid">
+                  <div class="p-card"><b><i></i>AI做界面·先做功能vs先做UI？</b><p>2026-10-12 · 完播率 61%</p><span class="p-tag">已发布</span></div>
+                  <div class="p-card"><b><i></i>Opus5.5重构创作面板</b><p>2026-10-08 · 完播率 58%</p><span class="p-tag">已发布</span></div>
+                  <div class="p-card"><b><i></i>4个按钮动效提示词</b><p>2026-10-07 · 完播率 66%</p><span class="p-tag">已发布</span></div>
+                  <div class="p-card"><b><i></i>UI设计Skill工作流</b><p>2026-09-21 · 完播率 55%</p><span class="p-tag">已发布</span></div>
+                  <div class="p-card"><b><i></i>AI写前端·UI稿还原</b><p>2026-09-19 · 完播率 49%</p><span class="p-tag">已发布</span></div>
+                  <div class="p-card"><b><i></i>创作面板·三版风格合集</b><p>编辑中 · 封面待换</p><span class="p-tag">草稿</span></div>
+                </div>
+              </div>
+              <!-- 创作台 -->
+              <div class="view" id="view2">
+                <h3>创作台<span>写稿 · 配图 · 生成</span></h3>
+                <div style="display:grid;grid-template-columns:1fr;gap:11px">
+                  <input class="p-input" value="AI做界面：先做功能还是先做UI？" aria-label="作品标题">
+                  <textarea class="p-input" rows="5" aria-label="正文">把功能框架理清楚再做 UI，再接上内容数据，边用边改——三版风格用同一套规则。拆参考看六个部分：配色、布局留白、字体层级、形状比例、材质光影、动效。</textarea>
+                  <div style="display:flex;gap:9px;align-items:center">
+                    <button type="button" class="p-btn" id="pressBtn">发布（按下缩放）</button>
+                    <button type="button" class="p-btn ghost">存草稿</button>
+                    <span style="font-size:10px;color:var(--p-mut)">发布按钮按下缩放 96% · 视频原文：94% 最后调回 96%，数字差一点手感完全不同</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 选题池 -->
+              <div class="view" id="view3">
+                <h3>选题池<span>灵感与待做选题</span></h3>
+                <div class="grid-2">
+                  <div class="p-card"><b><i></i>新手怎么给 AI 说清楚"高级感"</b><p>来自评论区高频提问</p><span class="p-tag">灵感</span></div>
+                  <div class="p-card"><b><i></i>创作面板还能怎么换风格？</b><p>待排期 · 建议下周四</p><span class="p-tag">待排期</span></div>
+                  <div class="p-card"><b><i></i>UI Skill 术语对照表</b><p>拆参考时发现用户卡在术语</p><span class="p-tag">灵感</span></div>
+                  <div class="p-card"><b><i></i>数据大屏案例复盘</b><p>早期作品 · 可做系列复盘</p><span class="p-tag">灵感</span></div>
+                </div>
+              </div>
+              <!-- 日历表 -->
+              <div class="view" id="view4">
+                <h3>日历表<span>发布排期与节奏</span></h3>
+                <div class="p-cal" id="calGrid">
+                  <div class="c"><b>周一</b>选题《术语对照表》<span class="ev">排期</span></div>
+                  <div class="c"><b>周二</b>—</div>
+                  <div class="c today"><b>周三</b>《三版风格合集》<span class="ev">发布</span></div>
+                  <div class="c"><b>周四</b>《换风格思路》<span class="ev">排期</span></div>
+                  <div class="c"><b>周五</b>—</div>
+                  <div class="c"><b>周六</b>—</div>
+                  <div class="c"><b>周日</b>复盘《功能vs UI》<span class="ev">排期</span></div>
+                </div>
+                <p style="font-size:10px;color:var(--p-mut);margin-top:10px">日历表关联选题池（排期来源）与作品库（发布记录）。</p>
+              </div>
+              <!-- 数据库 -->
+              <div class="view" id="view5">
+                <h3>数据库<span>内容 · 选题 · 发布记录</span></h3>
+                <table class="p-table">
+                  <colgroup><col style="width:26%"><col style="width:22%"><col style="width:22%"><col style="width:30%"></colgroup>
+                  <thead><tr><th>标题</th><th>类型</th><th>发布日期</th><th>状态</th></tr></thead>
+                  <tbody>
+                    <tr><td>先做功能vs先做UI？</td><td>视频</td><td>10-12</td><td>已发布</td></tr>
+                    <tr><td>Opus5.5重构创作面板</td><td>视频</td><td>10-08</td><td>已发布</td></tr>
+                    <tr><td>4个按钮动效</td><td>视频</td><td>10-07</td><td>已发布</td></tr>
+                    <tr><td>三版风格合集</td><td>视频</td><td>编辑中</td><td>草稿</td></tr>
+                    <tr><td>术语对照表</td><td>图文</td><td>未排期</td><td>选题池</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 信息卡 -->
+    <div class="info-grid" id="infoGrid">
+      <div class="info"><h5>这一步在做什么<span id="infoTagA">框架先行</span></h5><p id="infoTextA">先把内容框架和底层关联理清楚，再交给 AI——每个模块代表什么、内容之间怎么关联，先有一张关系图。</p><div class="v" id="infoSrcA">[V] 视频逐字稿</div></div>
+      <div class="info"><h5>这一步的产出<span id="infoTagB">六模块关系图</span></h5><p id="infoTextB">工作台 / 作品库 / 创作台 / 选题池 / 日历表 / 数据库：六个核心模块 + 底层链接关系。</p><div class="v" id="infoSrcB">[I] 按逐字稿整理，非视频原图</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 细节实验室 ===== -->
+<section class="wrap">
+  <div class="lab">
+    <h4>视频里的手感细节 · 还原实验室</h4>
+    <div class="lab-row">
+      <div class="lab-item">
+        <b>按钮按下 · 缩放比例对比</b>
+        <p>视频原文：试过 94%，最后调回 96%——"数字差一点，手感完全不同"。点下方按钮感受，切换比例再对比。</p>
+        <div class="press-demo">
+          <button type="button" id="pressProbe">按我一下</button>
+          <div class="sels" id="pressSels">
+            <button type="button" data-p="0.94">94%</button>
+            <button type="button" data-p="0.96" class="on">96%</button>
+            <button type="button" data-p="1">100%</button>
+          </div>
+        </div>
+      </div>
+      <div class="lab-item">
+        <b>封面转场 · 只动封面不动标题</b>
+        <p>改稿四问示例的成品：封面单独转场、时长 650 毫秒、标题保持不动。悬停上方封面体验。</p>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div class="cover-demo"><div class="cv"></div><span class="cap">标题保持不动</span></div>
+          <div class="tx">封面 scale 1 → 1.12 · 650ms 缓动<br>标题层不参与转场</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 共性 vs 变化 ===== -->
+<section class="wrap">
+  <div class="cv2">
+    <div class="box">
+      <b>三版共性（不变）</b>
+      <ul>
+        <li>六个模块的内容框架 + 底层链接关系</li>
+        <li>同一页面布局、阅读层次、主辅信息位置</li>
+        <li>组件尺寸与对齐（列表序号大小位置统一）</li>
+        <li>操作反馈同一套节奏（封面转场、按下特效）</li>
+      </ul>
+    </div>
+    <div class="box var">
+      <b>随风格变化</b>
+      <ul>
+        <li>配色（浅灰暖灰 / 银黑深底银层 / 新拟物同调）</li>
+        <li>材质与光影（细线光感 / 明暗双层阴影）</li>
+        <li>主题元素（银白光球 / 红色光球，6s 无缝循环）</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>本页为抖音《AI做界面：先做功能vs先做UI？》中创作面板的演进复现：从六模块框架 → 朴素第一版 → 拆参考定风格 → 浅灰/银黑/新拟物三版，按视频顺序逐步还原；面板为复现示意（非视频截图），文案引用均标注 [V]（逐字稿原文）/ [I]（归纳）/ [U]（推演）。</p>
+    <p class="src">来源 · 抖音 @Xuan子《AI做界面：先做功能vs先做UI？》（逐字稿已 fetch 查证）</p>
+  </div>
+</footer>
+
+<script>
+/* ===== 演进步骤 ===== */
+const STEPS=[
+  {cls:'',  frame:true,  panel:'none',  noteTag:'STEP 0 · 功能框架', note:'先把六个核心模块理清楚：工作台、作品库、创作台、选题池、日历表、数据库——每个模块代表什么、内容之间怎么关联，先有框架再交给 AI。', noteSrc:'[V] 视频逐字稿', infoTagA:'框架先行', infoTextA:'先把内容框架和底层关联理清楚，再交给 AI——每个模块代表什么、内容之间怎么关联，先有一张关系图。', infoSrcA:'[V] 视频逐字稿', infoTagB:'六模块关系图', infoTextB:'工作台 / 作品库 / 创作台 / 选题池 / 日历表 / 数据库：六个核心模块 + 底层链接关系。', infoSrcB:'[I] 按逐字稿整理，非视频原图'},
+  {cls:'ver-v1',    frame:false, panel:'block', noteTag:'STEP 1 · 第一版 · 朴素', note:'框架有了就交给 AI 做出第一版——功能都有了，但说实话并不好看。这是很多人的同款卡点：想要的东西都有了，打开一看总差点意思。', noteSrc:'[V] 视频逐字稿', infoTagA:'第一版出来了', infoTextA:'功能都有了，但界面并不好看。只跟 AI 说"再高级一点、再漂亮一点"，它根本不知道你喜欢什么。', infoSrcA:'[V] 视频逐字稿', infoTagB:'朴素版特征', infoTextB:'功能齐全但无风格：默认白底、直角、无阴影、无层次——本页用无样式态还原"功能全但不美"。', infoSrcB:'[U] 依据视频描述还原'},
+  {cls:'ver-v1',    frame:false, panel:'block', noteTag:'STEP 2 · 拆参考定风格', note:'先找自己喜欢的参考，让 AI 拆"为什么好看"，看六个部分：配色、布局留白、字体层级、形状比例、材质光影、动效。拆完结合自己的内容功能做调整。', noteSrc:'[V] 视频逐字稿', infoTagA:'拆参考六维', infoTextA:'配色（背景/文字/强调色各占多少）；布局留白（哪里紧哪里松）；字体层级（谁先被看到）；形状比例（卡片按钮多大）；材质光影（质感与阴影）；动效（出现/切换/按下）。', infoSrcA:'[V] 视频逐字稿', infoTagB:'风格基本元素固定', infoTextB:'拆完后把风格基本元素固定下来，后续加卡片按钮列表都按这套走。浅灰=偏暖灰+柔和明暗+舒展留白；银黑=深底+银灰层次+细线+局部光感；新拟物=同调表面+圆润轮廓+明暗双层阴影。', infoSrcB:'[V] 视频逐字稿'},
+  {cls:'ver-gray',  frame:false, panel:'block', noteTag:'STEP 3 · 浅灰版', note:'偏暖的灰色、柔和的明暗、舒展的留白。主题元素不设光球——靠留白与明暗呼吸。', noteSrc:'[V] 视频逐字稿', infoTagA:'浅灰版令牌', infoTextA:'底色偏暖浅灰、卡片柔和明暗、强调低饱和灰、点缀暖灰金；舒展留白是它的记忆点。', infoSrcA:'[I] 归纳', infoTagB:'本版可切换视图', infoTextB:'点左侧六模块导航，查看同一套框架在不同视图下的样子——布局与组件对齐三版统一。', infoSrcB:'[I] 归纳'},
+  {cls:'ver-silver',frame:false, panel:'block', noteTag:'STEP 4 · 银黑版', note:'深色的底 + 银灰的层次 + 细线 + 局部的光感；主题元素是银白大光球——6 秒无缝循环动画，体现神经网络的呼吸感。', noteSrc:'[V] 视频逐字稿', infoTagA:'银黑版令牌', infoTextA:'深色底、银灰层次、细线描边、局部光感；顶栏光球为单独制作的主题元素，静音后放主界面循环播放。', infoSrcA:'[V] 视频逐字稿', infoTagB:'无缝循环要求', infoTextB:'为什么一定要无缝：光球会一直在主界面循环，接头的地方不能突然跳一下。', infoSrcB:'[V] 视频逐字稿'},
+  {cls:'ver-neo',   frame:false, panel:'block', noteTag:'STEP 5 · 新拟物版', note:'与底色接近的表面、圆润的轮廓、明暗两层阴影做凸起和凹陷（neumorphism）；主题元素是红色光球。', noteSrc:'[V] 视频逐字稿', infoTagA:'新拟物版令牌', infoTextA:'同调表面 + 圆润轮廓 + 明暗双层阴影（亮影/暗影做出凸起凹陷）；红色光球同为主界面循环元素。', infoSrcA:'[V] 视频逐字稿', infoTagB:'凹凸只属于新拟物', infoTextB:'凹凸效果只放在新拟物版；另外两版用自己的边界和明暗来表达层次。', infoSrcB:'[V] 视频逐字稿'}
+];
+const stepsBox=document.getElementById('steps');
+const stageCanvas=document.getElementById('stageCanvas');
+const panel=document.getElementById('panel');
+const frameView=document.getElementById('frameView');
+const noteTag=document.getElementById('noteTag');
+const noteText=document.getElementById('noteText');
+const noteSrc=document.getElementById('noteSrc');
+const infoTagA=document.getElementById('infoTagA'),infoTextA=document.getElementById('infoTextA'),infoSrcA=document.getElementById('infoSrcA');
+const infoTagB=document.getElementById('infoTagB'),infoTextB=document.getElementById('infoTextB'),infoSrcB=document.getElementById('infoSrcB');
+function applyStep(s){
+  const d=STEPS[s];
+  panel.className='panel '+(d.cls||'ver-v1');
+  panel.style.display=d.panel;
+  frameView.style.display=d.frame?'block':'none';
+  stageCanvas.style.background=(d.cls==='ver-silver')?'#101114':(d.cls==='ver-neo')?'#CFCBBF':(d.cls==='ver-gray')?'#E7E4DA':'var(--paper-2)';
+  noteTag.textContent=d.noteTag;
+  noteText.textContent=d.note;
+  noteSrc.textContent=d.noteSrc;
+  infoTagA.textContent=d.infoTagA; infoTextA.textContent=d.infoTextA; infoSrcA.textContent=d.infoSrcA;
+  infoTagB.textContent=d.infoTagB; infoTextB.textContent=d.infoTextB; infoSrcB.textContent=d.infoSrcB;
+  document.querySelectorAll('#steps button').forEach((b,i)=>{
+    b.classList.toggle('on',i===s);
+    b.classList.toggle('done',i<s);
+  });
+  // 进度条动画
+  requestAnimationFrame(()=>{panel.querySelectorAll('.p-bar i').forEach(b=>{b.style.width=b.dataset.w+'%'})});
+}
+stepsBox.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  applyStep(+b.dataset.s);
+});
+applyStep(5);
+
+/* ===== 六模块导航 ===== */
+document.getElementById('pSide').addEventListener('click',e=>{
+  const a=e.target.closest('a'); if(!a)return;
+  document.querySelectorAll('#pSide a').forEach(x=>x.classList.remove('on'));
+  a.classList.add('on');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('view'+a.dataset.v).classList.add('on');
+});
+
+/* ===== 按钮按压缩放（96%） ===== */
+const pressBtn=document.getElementById('pressBtn');
+let pressVal=0.96;
+pressBtn.addEventListener('mousedown',()=>{pressBtn.style.transform='scale('+pressVal+')'});
+pressBtn.addEventListener('mouseup',()=>{pressBtn.style.transform=''});
+pressBtn.addEventListener('mouseleave',()=>{pressBtn.style.transform=''});
+document.getElementById('pressSels').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#pressSels button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  pressVal=+b.dataset.p;
+  document.documentElement.style.setProperty('--cur-press',b.dataset.p);
+});
+
+/* ===== 手感实验室：按钮点击反馈 ===== */
+let probeTimer=null;
+document.getElementById('pressProbe').addEventListener('click',function(){
+  this.style.transform='scale('+pressVal+')';
+  clearTimeout(probeTimer);
+  probeTimer=setTimeout(()=>{this.style.transform=''},140);
+  let tip=document.querySelector('.lab-toast');
+  if(!tip){tip=document.createElement('div');tip.className='lab-toast';document.body.appendChild(tip)}
+  tip.textContent='当前按压缩放 '+Math.round(pressVal*100)+'% · 视频里 94% 生硬、96% 刚好';
+  tip.classList.add('show');
+  clearTimeout(tip._t);
+  tip._t=setTimeout(()=>tip.classList.remove('show'),1600);
+});
+
+/* ===== 手感实验室：封面转场点击回放 ===== */
+document.querySelector('.cover-demo').addEventListener('click',function(){
+  const cv=this.querySelector('.cv');
+  cv.style.transition='transform .65s cubic-bezier(.4,0,.2,1)';
+  cv.style.transform='scale(1.12) rotate(1.2deg)';
+  setTimeout(()=>{cv.style.transform='scale(1)'},700);
+});
+
+/* ===== 光球 Canvas（顶栏主题元素 · 6s 无缝呼吸） ===== */
+(function(){
+  const orbs=document.querySelectorAll('.p-orb');
+  orbs.forEach(orb=>{
+    const cv=document.createElement('canvas');
+    cv.style.cssText='position:absolute;inset:0;width:100%;height:100%';
+    orb.appendChild(cv);
+    const ctx=cv.getContext('2d');
+    const s=cv.width=cv.height=90; // 3x 内部分辨率
+    // 粒子（球面均匀）
+    const pts=[],N=46;
+    const ga=Math.PI*(3-Math.sqrt(5));
+    for(let i=0;i<N;i++){
+      const y=1-(i/(N-1))*2, r=Math.sqrt(1-y*y), th=ga*i;
+      pts.push({x:Math.cos(th)*r,y:y,z:Math.sin(th)*r,ph:Math.random()*Math.PI*2});
+    }
+    const silver=orb.closest('.ver-silver')!==null;
+    const baseC=silver?[232,232,234]:[216,110,92];
+    const coreC=silver?[245,245,247]:[232,123,94];
+    function tick(t){
+      const phase=(t%6000)/6000;
+      const cyc=Math.sin(phase*Math.PI*2);
+      const scale=1+cyc*0.07;
+      const cx=s/2, cy0=s/2, R=s*0.30;
+      ctx.clearRect(0,0,s,s);
+      const g=ctx.createRadialGradient(cx,cy0,R*0.5,cx,cy0,R*1.7);
+      g.addColorStop(0,'rgba('+baseC[0]+','+baseC[1]+','+baseC[2]+','+(0.20+0.10*cyc)+')');
+      g.addColorStop(1,'rgba('+baseC[0]+','+baseC[1]+','+baseC[2]+',0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,s,s);
+      ctx.save(); ctx.translate(cx,cy0); ctx.scale(scale,scale);
+      for(const p of pts){
+        const ps=1+cyc*0.07*0.6*Math.sin(p.ph+cyc*2.2);
+        const rr=R*ps;
+        const b=0.30+0.70*(0.5+0.5*Math.sin(p.ph+cyc*2.2));
+        ctx.fillStyle='rgba('+coreC[0]+','+coreC[1]+','+coreC[2]+','+b+')';
+        ctx.beginPath();
+        ctx.arc(p.x*rr,p.y*rr,1.5,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.restore();
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+})();
+</script>
+</body>
+</html>
+

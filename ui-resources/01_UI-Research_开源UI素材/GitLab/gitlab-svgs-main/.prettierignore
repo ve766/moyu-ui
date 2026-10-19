@@ -1,0 +1,11 @@
+# dependencies
+node_modules
+
+# Nuxt build
+.nuxt
+
+# Nuxt generate
+public
+
+svgpreviewer/static/dist
+dist

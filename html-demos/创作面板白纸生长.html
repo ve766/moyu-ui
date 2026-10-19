@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>创作面板·白纸生长 · From a Blank Paper</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='7' width='22' height='20' rx='3' fill='%23F4F1EA' stroke='%231B1E24' stroke-width='2'/%3E%3Ccircle cx='16' cy='17' r='4.5' fill='%23C9A45C'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --font:'Noto Sans SC',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+  --display:'Noto Serif SC','Songti SC',serif;
+  --tick:cubic-bezier(.34,1.35,.6,1);
+  --bg:#E8E4DA; --paper:#F4F1EA; --paper-2:#FBFAF6;
+  --ink:#1B1E24; --mut:#6E6B63; --faint:#A29D90;
+  --gold:#C9A45C; --gold-2:#A8843C;
+  --line:#DDD8CC;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:
+  radial-gradient(1200px 600px at 50% -10%, rgba(201,164,92,.14), transparent 60%),
+  var(--bg);color:var(--ink);font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh}
+::selection{background:var(--gold);color:#fff}
+button{font-family:inherit;color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+/* 顶栏 */
+.topbar{position:sticky;top:0;z-index:40;background:rgba(232,228,218,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;height:56px;gap:12px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-family:var(--display);font-size:15px}
+.logo .pico{width:22px;height:22px;border-radius:5px;background:var(--paper);border:1.5px solid var(--ink);position:relative;flex:none}
+.logo .pico::after{content:'';position:absolute;inset:0;margin:auto;width:7px;height:7px;border-radius:50%;background:var(--gold)}
+.tb-note{margin-left:auto;font-size:10.5px;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+
+/* Hero */
+.hero{padding:44px 0 8px;text-align:center}
+.hero .eyebrow{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.22em;color:var(--gold-2)}
+.hero h1{font-family:var(--display);font-size:clamp(26px,4.2vw,38px);font-weight:900;margin:10px 0 8px}
+.hero h1 em{font-style:normal;color:var(--gold-2)}
+.hero .sub{max-width:620px;margin:0 auto;color:var(--mut);font-size:13.5px}
+
+/* 舞台 */
+.stage-wrap{margin-top:26px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,var(--paper-2),#EDE9E0);box-shadow:0 18px 50px rgba(27,30,36,.10);overflow:hidden;position:relative}
+.stage{position:relative;min-height:520px;padding:34px 24px 120px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+@media (min-width:900px){.stage{min-height:560px}}
+
+/* 白纸 */
+.paper{position:relative;width:min(820px,100%);background:var(--paper);border-radius:14px;box-shadow:0 2px 6px rgba(27,30,36,.06),0 22px 40px rgba(27,30,36,.10);padding:0;overflow:hidden;transition:box-shadow .5s}
+.paper::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 49.9%,rgba(27,30,36,.025) 50%,transparent 50.1%);pointer-events:none;z-index:2}
+/* 生长轮廓层 */
+.paper .ink-line{position:absolute;inset:0;border:1.6px dashed rgba(27,30,36,.28);border-radius:14px;opacity:0;pointer-events:none;z-index:1}
+.paper.growing .ink-line{animation:sketch 1.1s ease .25s both}
+@keyframes sketch{0%{opacity:0;transform:scale(.985)}35%{opacity:.55}100%{opacity:1;transform:scale(1)}}
+
+/* 面板内部 */
+.panel{position:relative;z-index:3;opacity:0}
+.paper.growing .panel,.paper.grown .panel{opacity:1}
+.p-top{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line);transition:opacity .4s}
+.p-top .pt-orb{width:26px;height:26px;border-radius:50%;flex:none;position:relative}
+.p-top .pt-orb::after{content:'';position:absolute;inset:0;margin:auto;width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.p-top .pt-title{font-weight:800;font-family:var(--display);font-size:15px}
+.p-top .pt-search{flex:1;max-width:220px;margin-left:auto;font-size:11px;color:var(--faint);border:1px solid var(--line);border-radius:999px;padding:5px 13px}
+.p-top .pt-act{font-size:11px;font-weight:700;color:#fff;background:var(--gold);border-radius:9px;padding:6px 14px}
+.p-body{display:grid;grid-template-columns:1fr;gap:0}
+@media (min-width:760px){.p-body{grid-template-columns:148px 1fr}}
+.p-side{display:none;padding:12px 8px;border-right:1px solid var(--line)}
+@media (min-width:760px){.p-side{display:block}}
+.p-side .sv{padding:8px 12px;border-radius:9px;font-size:12px;color:var(--mut);margin-bottom:3px;display:flex;align-items:center;gap:9px;transition:all .2s}
+.p-side .sv .ic{width:16px;height:16px;border-radius:5px;flex:none}
+.p-side .sv.on{background:rgba(201,164,92,.14);color:var(--gold-2);font-weight:600}
+.p-main{padding:18px;min-height:280px;position:relative}
+.view{display:none}
+.view.on{display:block}
+/* 视图内卡 */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:var(--paper-2)}
+.kpi b{font-size:20px;font-family:var(--display);display:block}
+.kpi span{font-size:9.5px;color:var(--faint);letter-spacing:.06em}
+.grid2{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:560px){.grid2{grid-template-columns:1fr 1fr}}
+.card{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:var(--paper-2)}
+.card b{font-size:12px;display:block;margin-bottom:7px}
+.card p{font-size:11.5px;color:var(--mut);line-height:1.6}
+.card .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.card .chips span{font-size:9.5px;color:var(--gold-2);border:1px solid rgba(201,164,92,.5);border-radius:999px;padding:1px 8px}
+.wgrid{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:560px){.wgrid{grid-template-columns:repeat(2,1fr)}}
+.witem{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:var(--paper-2)}
+.witem .cover{width:52px;height:38px;border-radius:7px;background:linear-gradient(135deg,#2B2F38,#14161A);flex:none;position:relative}
+.witem .cover::after{content:'';position:absolute;inset:0;margin:auto;width:16px;height:16px;border-radius:50%;border:2px solid rgba(230,230,234,.75);box-shadow:0 0 8px rgba(230,230,234,.5)}
+.witem .wt{font-size:12px;font-weight:700;line-height:1.4}
+.witem .wm{font-size:10px;color:var(--faint);margin-top:3px}
+.editor{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.editor .ed-bar{display:flex;gap:6px;padding:9px 12px;border-bottom:1px solid var(--line);background:var(--paper-2)}
+.editor .ed-bar i{width:9px;height:9px;border-radius:50%;display:block}
+.editor textarea{width:100%;border:0;outline:none;resize:none;font-family:var(--font);font-size:12.5px;line-height:1.7;padding:13px 14px;background:var(--paper-2);color:var(--ink)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--paper-2)}
+.cal .cw{font-size:8.5px;color:var(--faint);text-align:center;padding:4px 0}
+.cal .cd{font-size:10.5px;text-align:center;padding:7px 2px;border-radius:7px;color:var(--mut)}
+.cal .cd.filled{background:rgba(201,164,92,.2);color:var(--gold-2);font-weight:700}
+.cal .cd.today{background:var(--gold);color:#fff;font-weight:800}
+table.db{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.5px}
+table.db th,table.db td{border:1px solid var(--line);padding:7px 8px;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+table.db th{background:var(--paper-2);color:var(--faint);font-weight:600}
+table.db td{color:var(--mut)}
+
+/* 生长交错动画 */
+.grow{opacity:0;transform:translateY(14px) scale(.99)}
+.paper.growing .grow,.paper.grown .grow{animation:growIn .55s var(--tick) both}
+@keyframes growIn{to{opacity:1;transform:translateY(0) scale(1)}}
+@media (prefers-reduced-motion: reduce){
+  .grow{opacity:1;transform:none;animation:none}
+  .paper .ink-line{opacity:.3}
+  .paper.growing .ink-line,.paper.grown .ink-line{animation:none}
+}
+.g1{animation-delay:.30s}.g2{animation-delay:.48s}.g3{animation-delay:.66s}.g4{animation-delay:.84s}
+.g5{animation-delay:1.02s}.g6{animation-delay:1.20s}.g7{animation-delay:1.38s}.g8{animation-delay:1.56s}
+.g9{animation-delay:1.74s}.g10{animation-delay:1.92s}
+
+/* 巡游焦点卡 */
+.view-focus{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:rgba(27,30,36,.88);color:#EDE9E0;border-radius:999px;padding:8px 18px;font-size:12px;white-space:nowrap;opacity:0;transition:opacity .3s;z-index:9;max-width:88vw;overflow:hidden;text-overflow:ellipsis}
+.view-focus.show{opacity:1}
+.view-focus b{color:var(--gold)}
+
+/* 控制条 */
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--line);background:var(--paper-2)}
+.controls .btn{border:0;border-radius:10px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;background:var(--ink);color:var(--paper);display:inline-flex;align-items:center;gap:7px}
+.controls .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--mut);font-weight:500}
+.controls .btn.ghost:hover{border-color:var(--gold);color:var(--gold-2)}
+.controls .btn:disabled{opacity:.45;cursor:not-allowed}
+.theme-ctl{margin-left:auto;display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:999px;padding:3px}
+.theme-ctl button{border:0;background:transparent;font-size:11px;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--mut);transition:all .2s}
+.theme-ctl button.on{background:var(--ink);color:var(--paper)}
+.stage-tip{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:10.5px;color:var(--faint);z-index:8}
+
+/* 主题：银灰（深冷灰底 + 银灰层次 + 香槟金） */
+.panel.theme-silver{--pin:#14161A;--pbg:#1C1F25;--pbg2:#24282F;--pline:rgba(230,230,234,.14);--pink:#E6E6EA;--pmut:#9A9DA6;--pfaint:#5E6169;--pgold:#C9A45C;--pgold2:#E5C98F;--pcard:#1F222A;--psurf:#24282F}
+.panel.theme-silver{background:var(--pbg);color:var(--pink)}
+.panel.theme-silver .p-top{border-bottom-color:var(--pline)}
+.panel.theme-silver .pt-search{border-color:var(--pline);color:var(--pfaint)}
+.panel.theme-silver .p-side{border-right-color:var(--pline)}
+.panel.theme-silver .sv{color:var(--pmut)}
+.panel.theme-silver .sv.on{background:rgba(201,164,92,.16);color:var(--pgold2)}
+.panel.theme-silver .kpi,.panel.theme-silver .card,.panel.theme-silver .witem,.panel.theme-silver .editor,.panel.theme-silver .cal,.panel.theme-silver table.db{background:var(--pcard);border-color:var(--pline)}
+.panel.theme-silver .kpi span,.panel.theme-silver .card p,.panel.theme-silver .wm,.panel.theme-silver .cal .cd,.panel.theme-silver table.db td{color:var(--pmut)}
+.panel.theme-silver .cal .cw,.panel.theme-silver table.db th{color:var(--pfaint)}
+.panel.theme-silver .cal .cd.filled{background:rgba(201,164,92,.22);color:var(--pgold2)}
+.panel.theme-silver .cal .cd.today{background:var(--pgold);color:#14161A}
+.panel.theme-silver table.db th,.panel.theme-silver .editor .ed-bar{background:var(--psurf)}
+.panel.theme-silver .editor textarea{background:var(--pcard);color:var(--pink)}
+.panel.theme-silver .witem .cover{background:linear-gradient(135deg,#2E333C,#171920)}
+.panel.theme-silver .pt-orb{border:1.5px solid var(--pgold);box-shadow:0 0 10px rgba(201,164,92,.5)}
+/* 主题：新拟物（同调表面 + 双层阴影） */
+.panel.theme-neu{--pin:#E9E4DA;--pbg:#ECE7DE;--pbg2:#F2EEE6;--pline:transparent;--pink:#3A362E;--pmut:#7A7468;--pfaint:#A79F8F;--pgold:#B08D45;--pgold2:#8F702F;--pcard:#ECE7DE;--psurf:#ECE7DE}
+.panel.theme-neu{background:var(--pbg);color:var(--pink)}
+.panel.theme-neu .p-top{border-bottom-color:rgba(122,116,104,.18)}
+.panel.theme-neu .pt-search{border-color:transparent;background:var(--pbg);box-shadow:inset 2px 2px 5px rgba(122,116,104,.16),inset -2px -2px 5px rgba(255,255,255,.7);color:var(--pmut)}
+.panel.theme-neu .p-side{border-right-color:rgba(122,116,104,.14)}
+.panel.theme-neu .sv{color:var(--pmut)}
+.panel.theme-neu .sv.on{background:var(--pbg);box-shadow:3px 3px 7px rgba(122,116,104,.20),-3px -3px 7px rgba(255,255,255,.75);color:var(--pgold2)}
+.panel.theme-neu .kpi,.panel.theme-neu .card,.panel.theme-neu .witem,.panel.theme-neu .cal,.panel.theme-neu table.db{background:var(--pcard);border-color:transparent;box-shadow:5px 5px 10px rgba(122,116,104,.22),-5px -5px 10px rgba(255,255,255,.8)}
+.panel.theme-neu .kpi b{color:var(--pgold2)}
+.panel.theme-neu .editor,.panel.theme-neu .ed-bar{background:var(--pbg);border-color:transparent;box-shadow:5px 5px 10px rgba(122,116,104,.20),-5px -5px 10px rgba(255,255,255,.8)}
+.panel.theme-neu .editor textarea{background:var(--pbg);color:var(--pink)}
+.panel.theme-neu table.db th{background:var(--pbg)}
+.panel.theme-neu table.db th,td{border-color:rgba(122,116,104,.14)}
+.panel.theme-neu .witem .cover{background:linear-gradient(135deg,#3A362E,#57514A);border-radius:9px}
+.panel.theme-neu .pt-orb{border:1.5px solid var(--pgold);box-shadow:3px 3px 6px rgba(122,116,104,.25),-3px -3px 6px rgba(255,255,255,.8)}
+
+footer{border-top:1px solid var(--line);padding:22px 0 36px;margin-top:8px}
+footer p{font-size:11px;color:var(--mut);line-height:1.8}
+footer .src{font-size:9.5px;color:var(--faint);margin-top:4px}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="pico"></span>创作面板 · 白纸生长</div>
+    <span class="tb-note">来自 Xuan子 · 《Opus5.5 又重构了我的创作面板》</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">FROM A BLANK PAPER · 新拟物</span>
+    <h1>一张白纸里，<em>长出一整个创作面板</em></h1>
+    <p class="sub">30 秒走完工作台、作品库、创作台、选题池、日历——点击「从白纸长出」重看生长过程；银灰版和新拟物版，你站哪边？</p>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <!-- 白纸 -->
+      <div class="paper" id="paper">
+        <div class="ink-line"></div>
+        <!-- 面板 -->
+        <div class="panel theme-neu" id="panel">
+          <div class="p-top grow g1">
+            <span class="pt-orb"></span>
+            <span class="pt-title">创作面板</span>
+            <span class="pt-search">搜索作品 / 选题 / 数据</span>
+            <span class="pt-act">发布</span>
+          </div>
+          <div class="p-body">
+            <div class="p-side grow g2">
+              <div class="sv on" data-v="works"><span class="ic"></span>工作台</div>
+              <div class="sv" data-v="lib"><span class="ic"></span>作品库</div>
+              <div class="sv" data-v="studio"><span class="ic"></span>创作台</div>
+              <div class="sv" data-v="ideas"><span class="ic"></span>选题池</div>
+              <div class="sv" data-v="cal"><span class="ic"></span>日历表</div>
+              <div class="sv" data-v="db"><span class="ic"></span>数据库</div>
+            </div>
+            <div class="p-main grow g3">
+              <!-- 工作台 -->
+              <div class="view on" id="v-works">
+                <div class="kpis grow g4">
+                  <div class="kpi"><b>3</b><span>本周待发</span></div>
+                  <div class="kpi"><b>4</b><span>近 7 天发布</span></div>
+                  <div class="kpi"><b>5</b><span>待处理事项</span></div>
+                </div>
+                <div class="grid2 grow g5">
+                  <div class="card"><b>今日待办</b><p>给《AI做界面·三版风格》配封面<br>把选题池 3 条灵感排进日历表<br>检查《按钮动效》发布数据</p></div>
+                  <div class="card"><b>快捷入口</b><p>写新稿 · 记灵感 · 排发布</p><div class="chips"><span>创作台</span><span>选题池</span><span>日历表</span></div></div>
+                </div>
+              </div>
+              <!-- 作品库 -->
+              <div class="view" id="v-lib">
+                <div class="wgrid">
+                  <div class="witem grow g4"><span class="cover"></span><div><div class="wt">AI做界面·先做功能vs先做UI？</div><div class="wm">12.4万观看 · 收藏率 8.6%</div></div></div>
+                  <div class="witem grow g5"><span class="cover"></span><div><div class="wt">Opus5.5 重构创作面板</div><div class="wm">8.6万观看 · 收藏率 7.2%</div></div></div>
+                  <div class="witem grow g6"><span class="cover"></span><div><div class="wt">4 个按钮动效提示词</div><div class="wm">9.8万观看 · 收藏率 9.4%</div></div></div>
+                  <div class="witem grow g7"><span class="cover"></span><div><div class="wt">术语设计 Skill 教 AI 做 Dashboard</div><div class="wm">6.2万观看 · 收藏率 8.1%</div></div></div>
+                </div>
+              </div>
+              <!-- 创作台 -->
+              <div class="view" id="v-studio">
+                <div class="editor grow g4">
+                  <div class="ed-bar"><i style="background:#E2706F"></i><i style="background:#E7C46A"></i><i style="background:#7CAE8A"></i><span style="font-size:9px;color:var(--faint);margin-left:8px">draft · 草稿未保存</span></div>
+                  <textarea rows="6">给《AI做界面·三版风格》配封面
+
+正文里可以提到 [[创作面板·三版风格]]，和 [[先做功能vs先做UI？]] 互链……</textarea>
+                </div>
+              </div>
+              <!-- 选题池 -->
+              <div class="view" id="v-ideas">
+                <div class="grid2">
+                  <div class="card grow g4"><b>新手怎么给 AI 说清楚「高级感」</b><p>来自评论区高频提问，优先级高。</p><div class="chips"><span>高</span><span>待排期</span></div></div>
+                  <div class="card grow g5"><b>创作面板还能怎么换风格？</b><p>从三版风格出发，聊聊风格怎么长出来。</p><div class="chips"><span>中</span><span>待扩展</span></div></div>
+                  <div class="card grow g6"><b>UI Skill 术语对照表</b><p>拆参考时用户卡在术语命名。</p><div class="chips"><span>中</span><span>待排期</span></div></div>
+                  <div class="card grow g7"><b>白纸生长动画拆解</b><p>本期视频的动效思路拆解。</p><div class="chips"><span>低</span><span>已转草稿</span></div></div>
+                </div>
+              </div>
+              <!-- 日历表 -->
+              <div class="view" id="v-cal">
+                <div class="cal grow g4">
+                  <div class="cw">一</div><div class="cw">二</div><div class="cw">三</div><div class="cw">四</div><div class="cw">五</div><div class="cw">六</div><div class="cw">日</div>
+                  <div class="cd">1</div><div class="cd">2</div><div class="cd filled">3</div><div class="cd">4</div><div class="cd filled">5</div><div class="cd">6</div><div class="cd">7</div>
+                  <div class="cd">8</div><div class="cd">9</div><div class="cd filled">10</div><div class="cd">11</div><div class="cd">12</div><div class="cd">13</div><div class="cd today">14</div>
+                  <div class="cd">15</div><div class="cd filled">16</div><div class="cd">17</div><div class="cd">18</div><div class="cd filled">19</div><div class="cd">20</div><div class="cd">21</div>
+                  <div class="cd">22</div><div class="cd">23</div><div class="cd filled">24</div><div class="cd">25</div><div class="cd">26</div><div class="cd">27</div><div class="cd">28</div>
+                  <div class="cd">29</div><div class="cd">30</div><div class="cd">31</div><div class="cd"></div><div class="cd"></div><div class="cd"></div><div class="cd"></div>
+                </div>
+              </div>
+              <!-- 数据库 -->
+              <div class="view" id="v-db">
+                <table class="db grow g4">
+                  <colgroup><col style="width:32%"><col style="width:20%"><col style="width:16%"><col style="width:32%"></colgroup>
+                  <tr><th>标题</th><th>观看</th><th>收藏率</th><th>状态</th></tr>
+                  <tr><td>AI做界面·先做功能vs先做UI？</td><td>12.4万</td><td>8.6%</td><td>已发布</td></tr>
+                  <tr><td>Opus5.5 重构创作面板</td><td>8.6万</td><td>7.2%</td><td>已发布</td></tr>
+                  <tr><td>4 个按钮动效提示词</td><td>9.8万</td><td>9.4%</td><td>已发布</td></tr>
+                  <tr><td>创作面板·三版风格合集</td><td>—</td><td>—</td><td>草稿中</td></tr>
+                  <tr><td>白纸生长动画拆解</td><td>—</td><td>—</td><td>选题池</td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="view-focus" id="viewFocus"></div>
+      <p class="stage-tip">视频画面帧本会话不可获取，面板视觉为按设计理念复现示意 [U]</p>
+    </div>
+    <div class="controls">
+      <button class="btn" id="btnGrow" type="button">从白纸长出</button>
+      <button class="btn ghost" id="btnTour" type="button">30 秒巡游</button>
+      <div class="theme-ctl" id="themeCtl">
+        <button type="button" data-t="neu" class="on">新拟物</button>
+        <button type="button" data-t="silver">银灰版</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>本页复现 Xuan子《Opus5.5 又重构了我的创作面板，这次是从白纸里"捏"出来》：一张白纸长出一整个创作面板的生长动画，30 秒巡游六模块（工作台 / 作品库 / 创作台 / 选题池 / 日历表 / 数据库）；银灰版 vs 新拟物版可切换对比。视频正文仅标题+简介（已 fetch 查证），画面细节不可得，面板视觉与两版风格为按 Xuan子 设计理念的复现示意 [U]；示例数据虚构。</p>
+    <p class="src">来源 · 抖音 @Xuan子《Opus5.5又重构了我的创作面板，这次是从白纸里"捏"出来》（文案已查证）</p>
+  </div>
+</footer>
+
+<script>
+/* ===== 状态 ===== */
+const paper=document.getElementById('paper'),panel=document.getElementById('panel');
+const btnGrow=document.getElementById('btnGrow'),btnTour=document.getElementById('btnTour');
+const viewFocus=document.getElementById('viewFocus');
+const VIEWS=['works','lib','studio','ideas','cal','db'];
+const VIEW_NAMES={works:'工作台',lib:'作品库',studio:'创作台',ideas:'选题池',cal:'日历表',db:'数据库'};
+let grown=false,tourTimer=null,tourIdx=0,theme='neu';
+
+function setView(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  document.getElementById('v-'+v).classList.add('on');
+  document.querySelectorAll('.p-side .sv').forEach(x=>x.classList.toggle('on',x.dataset.v===v));
+}
+function setTheme(t){
+  theme=t;
+  panel.classList.remove('theme-silver','theme-neu');
+  panel.classList.add('theme-'+t);
+  document.querySelectorAll('#themeCtl button').forEach(x=>x.classList.toggle('on',x.dataset.t===t));
+}
+function grow(){
+  if(grown)return;
+  grown=true;
+  paper.classList.add('growing');
+  btnGrow.disabled=true;
+  btnTour.disabled=false;
+}
+function tour(){
+  if(tourTimer){clearInterval(tourTimer);tourTimer=null;btnTour.textContent='30 秒巡游';return;}
+  grow();
+  if(!grown)return;
+  btnTour.textContent='停止巡游';
+  tourIdx=VIEWS.indexOf('works');
+  viewFocus.classList.add('show');
+  viewFocus.innerHTML='正在巡游 · <b>工作台</b>';
+  setView('works');
+  tourTimer=setInterval(()=>{
+    tourIdx=(tourIdx+1)%VIEWS.length;
+    const v=VIEWS[tourIdx];
+    setView(v);
+    viewFocus.innerHTML='正在巡游 · <b>'+VIEW_NAMES[v]+'</b>';
+    if(tourIdx===VIEWS.length-1){clearInterval(tourTimer);tourTimer=null;btnTour.textContent='再巡游一遍';viewFocus.classList.remove('show');}
+  },4000);
+}
+btnGrow.addEventListener('click',grow);
+btnTour.addEventListener('click',tour);
+document.getElementById('themeCtl').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  setTheme(b.dataset.t);
+});
+document.querySelectorAll('.p-side .sv').forEach(sv=>{
+  sv.addEventListener('click',()=>{setView(sv.dataset.v);});
+});
+</script>
+</body>
+</html>
+

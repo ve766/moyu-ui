@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>矿脉 · 创作地层</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='6' width='24' height='4' rx='1' fill='%23C97B54'/%3E%3Crect x='4' y='12' width='24' height='4' rx='1' fill='%23C8A25C'/%3E%3Crect x='4' y='18' width='24' height='4' rx='1' fill='%237E93A6'/%3E%3Crect x='4' y='24' width='24' height='4' rx='1' fill='%236E5A48'/%3E%3Cpath d='M6 16 L26 22' stroke='%23C9A45C' stroke-width='2.4'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --font:'Noto Sans SC',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+  --display:'Noto Serif SC','Songti SC',serif;
+  --bg:#101418; --surf:#171C21; --surf-2:#1E242A;
+  --ink:#E7E3D8; --mut:#9BA18D; --faint:#5C6354;
+  --line:rgba(231,227,216,.10); --line-2:rgba(231,227,216,.22);
+  --gold:#C9A45C; --gold-2:#E5C98F;
+  --drill-h:14;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh}
+::selection{background:var(--gold);color:#101418}
+button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+/* 顶栏 */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(16,20,24,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;gap:12px;height:58px;flex-wrap:wrap}
+.topbar h1{font-family:var(--display);font-size:17px;font-weight:900;letter-spacing:.12em;display:flex;align-items:center;gap:9px}
+.topbar h1 .lg{display:inline-flex;gap:2px;width:22px;height:22px;flex:none}
+.topbar h1 .lg i{width:4px;border-radius:1px;background:var(--gold)}
+.topbar .exp{margin-left:auto;font-size:10.5px;color:var(--mut);letter-spacing:.08em}
+.topbar .exp b{color:var(--gold-2);font-family:var(--display)}
+.topbar .exp .st{display:block;font-size:9px;color:var(--faint)}
+
+/* hero */
+.hero{padding:34px 0 4px;text-align:center}
+.hero .eyebrow{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.28em;color:var(--gold-2)}
+.hero h2{font-family:var(--display);font-size:clamp(25px,4vw,36px);font-weight:900;margin:10px 0 6px;letter-spacing:.04em}
+.hero p{max-width:660px;margin:0 auto;color:var(--mut);font-size:13px}
+.hero .tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.hero .tags span{font-size:10.5px;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+.hero .tags span b{color:var(--gold-2);font-weight:600}
+
+/* 剖面主体 */
+.section{margin-top:20px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surf)}
+.strata-wrap{display:grid;grid-template-columns:1fr}
+@media (min-width:920px){.strata-wrap{grid-template-columns:1fr 300px}}
+.strata{position:relative;min-height:620px;overflow:hidden;background:#12161A}
+@media (min-width:920px){.strata{min-height:660px}}
+/* 地层 */
+.layer{position:absolute;left:0;right:0;cursor:pointer}
+.layer .grain{position:absolute;inset:0;pointer-events:none}
+.layer .ln{position:absolute;left:14px;top:10px;font-size:9px;letter-spacing:.22em;color:rgba(231,227,216,.5)}
+.layer .ln b{display:block;font-family:var(--display);font-size:12px;letter-spacing:.14em;color:var(--ink)}
+.layer .ln span{color:var(--faint)}
+.layer .lvl{position:absolute;right:14px;top:10px;font-size:9px;color:var(--faint);letter-spacing:.1em}
+/* 地层配色与纹理 */
+.l-ideas{top:0;height:19%;background:linear-gradient(180deg,#2A1E18,#3A2A1E)}
+.l-ideas .grain{background:
+  radial-gradient(2px 1.5px at 22% 40%,rgba(255,190,150,.14),transparent 45%),
+  radial-gradient(2px 1.5px at 54% 62%,rgba(255,190,150,.10),transparent 45%),
+  radial-gradient(1.5px 1px at 78% 30%,rgba(255,190,150,.12),transparent 45%),
+  linear-gradient(165deg,transparent 55%,rgba(120,60,30,.18) 56%,transparent 57%)}
+.l-methods{top:19%;height:18%;background:linear-gradient(180deg,#2A2414,#3A2E18)}
+.l-methods .grain{background:
+  radial-gradient(1.5px 1.5px at 32% 40%,rgba(240,210,140,.14),transparent 45%),
+  radial-gradient(2px 1.5px at 66% 58%,rgba(240,210,140,.10),transparent 45%),
+  linear-gradient(125deg,transparent 62%,rgba(120,90,30,.16) 63%,transparent 64%),
+  linear-gradient(30deg,transparent 70%,rgba(120,90,30,.12) 71%,transparent 72%)}
+.l-works{top:37%;height:20%;background:linear-gradient(180deg,#1C242C,#28333D)}
+.l-works .grain{background:
+  radial-gradient(1.5px 1.5px at 26% 36%,rgba(200,225,245,.12),transparent 45%),
+  radial-gradient(2px 1.5px at 62% 66%,rgba(200,225,245,.09),transparent 45%),
+  linear-gradient(155deg,transparent 58%,rgba(120,160,200,.14) 59%,transparent 60%),
+  linear-gradient(35deg,transparent 76%,rgba(120,160,200,.10) 77%,transparent 78%)}
+.l-cal{top:57%;height:18%;background:linear-gradient(180deg,#152420,#1E3128)}
+.l-cal .grain{background:
+  radial-gradient(2px 1.5px at 40% 42%,rgba(150,220,190,.12),transparent 45%),
+  radial-gradient(1.5px 1.5px at 72% 60%,rgba(150,220,190,.10),transparent 45%),
+  linear-gradient(140deg,transparent 64%,rgba(80,160,140,.14) 65%,transparent 66%)}
+.l-studio{top:75%;height:25%;background:linear-gradient(180deg,#221B16,#33281E)}
+.l-studio .grain{background:
+  radial-gradient(2px 2px at 30% 30%,rgba(255,210,150,.10),transparent 45%),
+  radial-gradient(2px 1.5px at 60% 55%,rgba(255,210,150,.08),transparent 45%),
+  linear-gradient(120deg,transparent 50%,rgba(120,70,30,.16) 51%,transparent 52%),
+  linear-gradient(20deg,transparent 68%,rgba(120,70,30,.12) 69%,transparent 70%)}
+/* 断层线 */
+.fault{position:absolute;width:1px;background:repeating-linear-gradient(180deg,rgba(231,227,216,.10) 0 4px,transparent 4px 8px);pointer-events:none}
+/* 矿脉 */
+.vein{position:absolute;height:var(--th);border-radius:999px;background:linear-gradient(180deg,#F0D9A8,var(--gold) 45%,#8A6A30);box-shadow:0 0 14px rgba(201,164,92,.35);cursor:pointer;transition:height .4s,box-shadow .3s;touch-action:none;z-index:5}
+.vein:hover{box-shadow:0 0 20px rgba(201,164,92,.6)}
+.vein.on{box-shadow:0 0 26px rgba(229,201,143,.75)}
+.vein.low{opacity:.45;box-shadow:none}
+.vein.pending{border-style:dashed;background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold) 60%,transparent);opacity:.5}
+.vein.drilling{animation:veinPulse 1.4s ease-in-out infinite}
+@keyframes veinPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
+.vein .vn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:9px;letter-spacing:.1em;color:#2A2110;font-weight:700;white-space:nowrap;background:rgba(240,217,168,.85);padding:1px 8px;border-radius:2px}
+.vein .vt{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);font-size:9.5px;color:var(--gold-2);letter-spacing:.08em;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .25s}
+.vein:hover .vt{opacity:1}
+/* 钻机线 */
+.drill{position:absolute;top:0;bottom:0;width:1px;background:repeating-linear-gradient(180deg,rgba(229,201,143,.7) 0 6px,transparent 6px 14px);pointer-events:none;z-index:6;transition:left .2s linear}
+.drill::before{content:'';position:absolute;left:50%;top:0;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:9px solid var(--gold-2)}
+.drill::after{content:'';position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px rgba(201,164,92,.8)}
+/* 刻度尺（底部） */
+.timebar{position:absolute;left:0;right:0;bottom:0;height:44px;background:var(--surf-2);border-top:1px solid var(--line);cursor:ew-resize;touch-action:none;z-index:7}
+.timebar .rule{position:absolute;left:0;right:0;top:21px;height:1px;background:var(--line-2)}
+.timebar .tick{position:absolute;top:14px;width:1px;height:15px;background:var(--faint)}
+.timebar .tick.big{height:19px;background:var(--mut)}
+.timebar .tick span{position:absolute;top:26px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--faint);letter-spacing:.04em;white-space:nowrap}
+.timebar .clk{position:absolute;left:12px;top:4px;font-size:9px;color:var(--faint);letter-spacing:.12em}
+.timebar .clk b{color:var(--gold-2);font-size:12px;font-family:var(--display)}
+.timebar .mode{position:absolute;right:12px;top:4px;font-size:9px;color:var(--faint);letter-spacing:.1em}
+/* 深度刻度（左侧） */
+.depth{position:absolute;left:0;top:0;bottom:44px;width:44px;pointer-events:none;z-index:4}
+.depth .dt{position:absolute;right:4px;font-size:8px;color:var(--faint);letter-spacing:.06em}
+
+/* 取样报告 */
+.sample{border-left:1px solid var(--line);background:var(--surf);padding:16px;display:flex;flex-direction:column;gap:12px}
+@media (max-width:919px){.sample{border-left:0;border-top:1px solid var(--line)}}
+.sample .sh{font-size:10px;letter-spacing:.18em;color:var(--faint)}
+.sample .core{border:1px solid var(--line);border-radius:12px;padding:13px;background:var(--surf-2)}
+.sample .core .ck{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sample .core .ck .dot{width:16px;height:16px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px rgba(201,164,92,.5);flex:none}
+.sample .core .ck b{font-family:var(--display);font-size:14px}
+.sample .core .ck .st{margin-left:auto;font-size:9px;color:var(--faint);letter-spacing:.08em;border:1px solid var(--line);border-radius:999px;padding:2px 8px}
+.sample .core .meta{font-size:11px;color:var(--mut);line-height:1.9}
+.sample .core .meta i{font-style:normal;display:inline-block;width:64px;color:var(--faint)}
+.sample .core .vein-bar{margin:10px 0;height:8px;border-radius:999px;background:rgba(201,164,92,.15);position:relative;overflow:hidden}
+.sample .core .vein-bar::after{content:'';position:absolute;inset:0;border-radius:999px;background:linear-gradient(90deg,var(--gold-2),var(--gold));width:var(--pv);transition:width .6s}
+.sample .rank{margin-top:4px;display:flex;gap:6px}
+.sample .rank button{flex:1;border:1px solid var(--line);color:var(--mut);font-size:10.5px;border-radius:8px;padding:7px 0;letter-spacing:.06em;transition:all .2s}
+.sample .rank button:hover{color:var(--ink);border-color:var(--line-2)}
+.sample .rank button.on{background:var(--gold);color:#101418;border-color:var(--gold);font-weight:700}
+.sample .leg{font-size:10px;color:var(--faint);line-height:2;letter-spacing:.04em}
+.sample .leg i{display:inline-block;width:22px;height:6px;border-radius:999px;background:var(--gold);margin-right:7px;vertical-align:2px;opacity:.7}
+
+/* 概念卡 */
+.concepts{margin-top:20px;border:1px solid var(--line);border-radius:16px;background:var(--surf);padding:18px}
+.concepts h4{font-family:var(--display);font-size:15px;margin-bottom:4px}
+.concepts .cc-sub{font-size:11px;color:var(--faint);margin-bottom:12px}
+.cc-grid{display:grid;grid-template-columns:1fr;gap:8px}
+@media (min-width:760px){.cc-grid{grid-template-columns:repeat(2,1fr)}}
+.cc{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surf-2)}
+.cc b{font-size:12px;display:block;margin-bottom:4px;color:var(--gold-2)}
+.cc p{font-size:11px;color:var(--mut);line-height:1.65}
+.cc .old{font-size:9.5px;color:var(--faint);text-decoration:line-through;margin-right:6px}
+.cc .new{font-size:9.5px;color:var(--gold-2);font-weight:700}
+
+footer{border-top:1px solid var(--line);padding:22px 0 34px;margin-top:8px}
+footer p{font-size:11px;color:var(--mut);line-height:1.8}
+footer .src{font-size:9.5px;color:var(--faint)}
+@media (prefers-reduced-motion: reduce){
+  .drill{transition:none}
+  .vein.drilling{animation:none}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <h1><span class="lg"><i style="height:8px"></i><i style="height:14px"></i><i style="height:10px"></i><i style="height:18px"></i></span>矿脉<span style="font-size:11px;color:var(--faint);font-weight:500;letter-spacing:.14em">创作地层</span></h1>
+    <div class="exp"><b id="expTime">10:00</b><span class="st" id="expPhase">勘探中 · 深 12m · 表土与灵感层</span></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">STRATUM · VEIN · DRILL</span>
+    <h2>创作，是一门地层学</h2>
+    <p>灵感是表土、方法会沉积、作品已成岩。五个模块是五条地层，你的每个任务都是一条<b>矿脉</b>——粗细即优先级，光泽即状态；钻机沿时间刻度勘探，点矿脉取样。</p>
+    <div class="tags">
+      <span><b>层次=时间</b> 由浅入深</span>
+      <span><b>矿脉=价值</b> 粗细定优先</span>
+      <span><b>时刻=钻机</b> 24h 勘探</span>
+      <span><b>取样=查看</b> 点矿脉开报告</span>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="section">
+    <div class="strata-wrap">
+      <div class="strata" id="strata">
+        <div class="layer l-ideas" id="ly-ideas"><div class="grain"></div><div class="ln"><b>表土层 · 灵感</b><span>选题池 · 最新鲜的沉积</span></div><div class="lvl">0–12m</div></div>
+        <div class="layer l-methods" id="ly-methods"><div class="grain"></div><div class="ln"><b>沉积层 · 方法</b><span>方法库 · 沉淀成体例</span></div><div class="lvl">12–24m</div></div>
+        <div class="layer l-works" id="ly-works"><div class="grain"></div><div class="ln"><b>砂岩层 · 作品</b><span>作品库 · 已成岩的成果</span></div><div class="lvl">24–36m</div></div>
+        <div class="layer l-cal" id="ly-cal"><div class="grain"></div><div class="ln"><b>含水层 · 排期</b><span>日历表 · 滋养流动的节奏</span></div><div class="lvl">36–48m</div></div>
+        <div class="layer l-studio" id="ly-studio"><div class="grain"></div><div class="ln"><b>基岩层 · 创作</b><span>创作台 · 正在开采的主矿脉</span></div><div class="lvl">48–64m</div></div>
+        <span class="fault" style="left:31%;top:0;bottom:44px;transform:rotate(14deg);transform-origin:top"></span>
+        <span class="fault" style="left:74%;top:0;bottom:44px;transform:rotate(-8deg);transform-origin:top"></span>
+        <div class="depth" id="depthScale"></div>
+        <div id="veins"></div>
+        <div class="drill" id="drill"></div>
+        <div class="timebar" id="timebar" role="slider" aria-label="勘探时刻">
+          <span class="clk">时刻 <b id="tbClock">10:00</b></span>
+          <span class="mode" id="tbMode">拖动勘探 · 或点按</span>
+          <span class="tick big" style="left:0"><span>0</span></span>
+          <span class="tick" style="left:12.5%"></span>
+          <span class="tick" style="left:25%"></span>
+          <span class="tick" style="left:37.5%"></span>
+          <span class="tick big" style="left:50%"><span>12</span></span>
+          <span class="tick" style="left:62.5%"></span>
+          <span class="tick" style="left:75%"></span>
+          <span class="tick" style="left:87.5%"></span>
+          <span class="tick big" style="left:100%"><span>24</span></span>
+          <span class="rule"></span>
+        </div>
+      </div>
+      <aside class="sample">
+        <div class="sh">SAMPLE REPORT · 岩芯取样</div>
+        <div class="core" id="core">
+          <div class="ck"><span class="dot"></span><b id="coreName">—</b><span class="st" id="coreState">—</span></div>
+          <div class="meta" id="coreMeta"></div>
+          <div class="vein-bar" id="veinBar"></div>
+          <div class="rank" id="rankCtl"></div>
+        </div>
+        <div class="sh" style="margin-top:2px">LEGEND · 图例</div>
+        <div class="leg">
+          <i style="height:7px"></i>主矿脉 · 高优先<br>
+          <i style="height:4px;opacity:.55"></i>支矿脉 · 中优先<br>
+          <i style="height:2px;opacity:.35"></i>细矿脉 · 低优先<br>
+          <i style="height:4px;background:transparent;border:1px dashed var(--gold);opacity:.6"></i>待探 · 虚线未圈定<br>
+          <i style="height:4px;animation:veinPulse 1.4s infinite"></i>开采中 · 呼吸高亮
+        </div>
+        <button class="rank" style="border:1px solid var(--line);border-radius:9px;padding:8px 0;font-size:11px;color:var(--mut);letter-spacing:.1em" id="btnCycle" type="button">自动勘探</button>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="concepts">
+    <h4>把「信息结构」画成一幅地质剖面</h4>
+    <p class="cc-sub">在 Xuan子 方法之上做第三套审美实验——继深色太空、纸墨印刷之后，用地质语言承载创作工作流。</p>
+    <div class="cc-grid">
+      <div class="cc"><b>层次 · 时间与优先级</b><p><span class="old">文件夹深浅</span><span class="new">地层的深浅</span>：表土=新鲜灵感、基岩=沉淀成果——由浅入深就是由今及古、由轻及重。</p></div>
+      <div class="cc"><b>矿脉 · 价值</b><p><span class="old">列表优先级标记</span><span class="new">矿脉粗细</span>：主矿脉粗亮、支脉细暗；黄金的价值不在外表，而在它被开采后的使用。</p></div>
+      <div class="cc"><b>时刻 · 钻机</b><p><span class="old">顶部时钟</span><span class="new">勘探钻机</span>：时间不是角落里的数字，而是沿剖面移动的钻机——它扫到哪条矿脉，哪条就在开采。</p></div>
+      <div class="cc"><b>取样 · 查看</b><p><span class="old">点击卡片弹窗</span><span class="new">岩芯取样报告</span>：每一条矿脉都可以取样，报告给出深度、状态、品位与优先级。</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>矿脉 · 创作地层为原创 UI 设计：继「星核创作中枢（轨道太空）」与「墨刊编辑部（纸墨印刷）」之后，第三套审美体系——地质剖面语言。地层、矿脉、深度、勘探全部为信息隐喻，数据虚构。</p>
+    <p class="src">方法论来源 · Xuan子《AI做界面》系列（找起点 / 讲清交互 / 一轮一个具体意见 / AI 自检，已查证）——本作延续其「一轮一改」方法，但审美与信息架构均为原创</p>
+  </div>
+</footer>
+
+<script>
+/* ================= 数据（虚构） ================= */
+const LAYERS={ideas:{n:'表土层 · 灵感',sub:'选题池'},methods:{n:'沉积层 · 方法',sub:'方法库'},works:{n:'砂岩层 · 作品',sub:'作品库'},cal:{n:'含水层 · 排期',sub:'日历表'},studio:{n:'基岩层 · 创作',sub:'创作台'}};
+const VEINS=[
+ {id:'v1',name:'创作面板换风格系列',layer:'ideas',rank:'high',status:'proven',depth:'3–8m',pv:82,meta:'高品位金矿 · 双样本 · 走向西北'},
+ {id:'v2',name:'「高级感」六条提示',layer:'ideas',rank:'mid',status:'pending',depth:'1–4m',pv:45,meta:'待探 · 品位中等 · 建议下钻'},
+ {id:'v3',name:'白纸生长动效拆解',layer:'ideas',rank:'low',status:'proven',depth:'6–9m',pv:28,meta:'细支脉 · 存档素材'},
+ {id:'v4',name:'拆参考六维',layer:'methods',rank:'high',status:'proven',depth:'15–20m',pv:88,meta:'厚矿层 · 三样本 · 品位稳定'},
+ {id:'v5',name:'改稿四问',layer:'methods',rank:'mid',status:'proven',depth:'18–22m',pv:63,meta:'中品位 · 可复用'},
+ {id:'v6',name:'先做功能还是先做UI',layer:'works',rank:'high',status:'proven',depth:'26–31m',pv:91,meta:'已成岩 · 主成果 · 收藏率 8.4%'},
+ {id:'v7',name:'Opus5.5 重构创作面板',layer:'works',rank:'mid',status:'proven',depth:'28–33m',pv:74,meta:'中品位 · 成岩完整'},
+ {id:'v8',name:'4 个按钮动效提示词',layer:'works',rank:'low',status:'proven',depth:'30–34m',pv:40,meta:'细脉 · 存档'},
+ {id:'v9',name:'发布排期：周一/周四',layer:'cal',rank:'high',status:'drilling',depth:'39–43m',pv:77,meta:'含水层导矿 · 临近主脉'},
+ {id:'v10',name:'复盘窗口：周日',layer:'cal',rank:'low',status:'pending',depth:'40–44m',pv:35,meta:'待探 · 低品位'},
+ {id:'v11',name:'创作面板·三版合集',layer:'studio',rank:'high',status:'drilling',depth:'50–58m',pv:86,meta:'主矿脉 · 开采中 · 进度 62%'},
+ {id:'v12',name:'墨刊编辑部 · 排印',layer:'studio',rank:'mid',status:'drilling',depth:'52–56m',pv:58,meta:'开采中 · 进度 38%'}
+];
+const RANK_TH={high:9,mid:5,low:2.5};
+const EDITIONS=[
+ {name:'晨勘',h0:6,h1:11,dep:'0–12m',desc:'表土与灵感层 · 晨光下取样'},
+ {name:'午勘',h0:11,h1:17,dep:'12–36m',desc:'方法至砂岩层 · 深钻进行时'},
+ {name:'晚勘',h0:17,h1:21,dep:'36–64m',desc:'含水至基岩层 · 主矿脉交接班'},
+ {name:'夜巡',h0:21,h1:6,dep:'全剖面',desc:'全剖面夜巡 · 低光高敏感'}
+];
+const DEPTH_MARKS=[{t:'0m',p:0},{t:'12m',p:19},{t:'24m',p:37},{t:'36m',p:57},{t:'48m',p:75},{t:'64m',p:100}];
+let hour=10,cycling=false,selected='v1';
+const strata=document.getElementById('strata');
+
+/* 深度刻度 */
+(function(){
+  const d=document.getElementById('depthScale');
+  DEPTH_MARKS.forEach(m=>{const s=document.createElement('span');s.className='dt';s.style.top='calc('+m.p+'% )';s.textContent=m.t;d.appendChild(s);});
+})();
+
+/* ================= 矿脉 ================= */
+const veinsEl=document.getElementById('veins');
+const VEIN_TOPS={ideas:[5.5,11,15.5],methods:[22,29],works:[40,47,53],cal:[60,68],studio:[80,88]};
+const VEIN_LEFT={v1:8,v2:46,v3:74,v4:12,v5:60,v6:10,v7:52,v8:82,v9:22,v10:64,v11:16,v12:58};
+const VEIN_ANG={v1:3,v2:-2,v3:5,v4:4,v5:-3,v6:2,v7:-4,v8:3,v9:-2,v10:4,v11:3,v12:-3};
+const VEIN_W={v1:290,v2:220,v3:180,v4:260,v5:240,v6:300,v7:240,v8:190,v9:260,v10:200,v11:320,v12:240};
+function renderVeins(){
+  veinsEl.innerHTML='';
+  VEINS.forEach(v=>{
+    const el=document.createElement('div');
+    el.className='vein'+(v.rank==='high'?'':' '+v.rank)+(v.status==='pending'?' pending':'')+(v.status==='drilling'?' drilling':'');
+    el.dataset.id=v.id;
+    el.style.top=VEIN_TOPS[v.layer][VEINS.filter(x=>x.layer===v.layer).indexOf(v)]+'%';
+    el.style.left=VEIN_LEFT[v.id]+'%';
+    el.style.width=VEIN_W[v.id]+'px';
+    el.style.height=v.rank==='high'?RANK_TH.high+'px':(v.rank==='mid'?RANK_TH.mid+'px':RANK_TH.low+'px');
+    el.style.transform='rotate('+VEIN_ANG[v.id]+'deg)';
+    el.innerHTML='<span class="vt">'+v.name+'</span><span class="vn">'+v.name+'</span>';
+    el.addEventListener('click',()=>selectVein(v.id));
+    veinsEl.appendChild(el);
+  });
+  updateDrilling();
+}
+function veinCenterX(v){
+  return VEIN_LEFT[v.id]/100*strata.clientWidth + VEIN_W[v.id]/2;
+}
+function updateDrilling(){
+  const dx=hour/24*strata.clientWidth;
+  VEINS.forEach(v=>{
+    const el=veinsEl.querySelector('[data-id="'+v.id+'"]');
+    if(!el)return;
+    const isDrill=Math.abs(veinCenterX(v)-dx)<90;
+    el.classList.toggle('drilling',isDrill&&v.status!=='pending');
+  });
+}
+renderVeins();
+
+/* ================= 取样报告 ================= */
+const coreName=document.getElementById('coreName'),coreState=document.getElementById('coreState'),
+  coreMeta=document.getElementById('coreMeta'),veinBar=document.getElementById('veinBar'),
+  rankCtl=document.getElementById('rankCtl');
+const STATUS={proven:{t:'探明',s:'实线 · 已圈定'},pending:{t:'待探',s:'虚线 · 未圈定'},drilling:{t:'开采中',s:'呼吸高亮 · 钻机在位'}};
+function selectVein(id){
+  selected=id;
+  const v=VEINS.find(x=>x.id===id);
+  document.querySelectorAll('.vein').forEach(x=>x.classList.toggle('on',x.dataset.id===id));
+  coreName.textContent=v.name;
+  const st=STATUS[v.status];
+  coreState.textContent=v.status==='proven'?'探明':v.status==='pending'?'待探':'开采中';
+  coreMeta.innerHTML='<i>所处地层</i>'+LAYERS[v.layer].n+'（'+LAYERS[v.layer].sub+'）<br><i>埋藏深度</i>'+v.depth+'<br><i>品位</i>'+v.pv+'% · '+(v.pv>=75?'高品位':v.pv>=50?'中品位':'低品位')+'<br><i>钻探状态</i>'+st.s;
+  veinBar.style.setProperty('--pv',v.pv+'%');
+  rankCtl.innerHTML='';
+  ['high','mid','low'].forEach(r=>{
+    const b=document.createElement('button');
+    b.type='button';b.dataset.r=r;
+    b.textContent=r==='high'?'高优先':r==='mid'?'中优先':'低优先';
+    b.classList.toggle('on',v.rank===r);
+    b.addEventListener('click',()=>setRank(id,r));
+    rankCtl.appendChild(b);
+  });
+}
+function setRank(id,r){
+  const v=VEINS.find(x=>x.id===id);
+  if(v.rank===r)return;
+  v.rank=r;renderVeins();selectVein(id);
+  toast('「'+v.name.slice(0,10)+'…」品位调至'+({high:'主矿脉 · 高优先',mid:'支矿脉 · 中优先',low:'细矿脉 · 低优先'})[r]);
+}
+selectVein('v1');
+/* 点地层 → 取该层主矿脉 */
+['ideas','methods','works','cal','studio'].forEach(lk=>{
+  const ly=document.getElementById('ly-'+lk);
+  ly.addEventListener('click',()=>{
+    const first=VEINS.find(v=>v.layer===lk);
+    if(first){selectVein(first.id);toast('钻探至'+LAYERS[lk].n+' · 取样「'+first.name.slice(0,10)+'…」');}
+  });
+});
+
+/* ================= 时刻 / 钻机 ================= */
+const drill=document.getElementById('drill'),tbClock=document.getElementById('tbClock'),
+  expTime=document.getElementById('expTime'),expPhase=document.getElementById('expPhase'),
+  timebar=document.getElementById('timebar'),tbMode=document.getElementById('tbMode');
+function editionAt(h){if(h>=6&&h<11)return EDITIONS[0];if(h>=11&&h<17)return EDITIONS[1];if(h>=17&&h<21)return EDITIONS[2];return EDITIONS[3];}
+function applyHour(h){
+  hour=Math.max(0,Math.min(24,h));
+  drill.style.left=(hour/24*100)+'%';
+  const ed=editionAt(hour);
+  const H=Math.floor(hour),M=Math.round((hour-H)*60);
+  if(M===60){hour=H+1;return applyHour(hour);}
+  const t=(H<10?'0':'')+H+':'+(M<10?'0':'')+M;
+  tbClock.textContent=t;expTime.textContent=t;
+  expPhase.textContent='勘探中 · '+ed.dep+' · '+ed.desc;
+  updateDrilling();
+}
+function tbX(e){const r=timebar.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));}
+timebar.addEventListener('pointerdown',e=>{timebar.setPointerCapture(e.pointerId);applyHour(tbX(e)*24);});
+timebar.addEventListener('pointermove',e=>{if(e.buttons)applyHour(tbX(e)*24);});
+const btnCycle=document.getElementById('btnCycle');
+btnCycle.addEventListener('click',()=>{
+  cycling=!cycling;
+  btnCycle.textContent=cycling?'停止勘探':'自动勘探';
+  btnCycle.style.background=cycling?'var(--gold)':'transparent';
+  btnCycle.style.color=cycling?'#101418':'var(--mut)';
+});
+setInterval(()=>{if(cycling)applyHour((hour+0.05)%24);},200);
+applyHour(10);
+
+/* ================= Toast ================= */
+let _t=null;
+function toast(msg){
+  let el=document.querySelector('.kv-toast');
+  if(!el){el=document.createElement('div');el.className='kv-toast';el.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(16px);background:var(--surf-2);color:var(--ink);font-size:12px;padding:9px 18px;border-radius:999px;border:1px solid var(--line-2);letter-spacing:.05em;opacity:0;pointer-events:none;transition:all .3s;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.4)';document.body.appendChild(el);}
+  el.textContent=msg;
+  el.style.opacity='1';el.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(_t);_t=setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(-50%) translateY(16px)';},1800);
+}
+window.addEventListener('resize',updateDrilling);
+</script>
+</body>
+</html>

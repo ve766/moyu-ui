@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>墨刊 · 创作编辑部</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F2EDE3'/%3E%3Crect x='6' y='6' width='20' height='20' fill='none' stroke='%2323211D' stroke-width='1.5'/%3E%3Cpath d='M6 12h20M6 18h20' stroke='%2323211D' stroke-width='1.5'/%3E%3Ccircle cx='26' cy='6' r='3' fill='%23C23B2E'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --font:'Noto Sans SC',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+  --display:'Noto Serif SC','Songti SC',serif;
+  --paper:#F2EDE3; --paper-2:#F6F1E7; --paper-3:#EDE7D9;
+  --ink:#23211D; --ink-2:#4A463F; --mut:#8A857A; --faint:#B5AFA0;
+  --cinnabar:#C23B2E; --cinnabar-2:#A33026;
+  --line:rgba(35,33,29,.16); --line-2:rgba(35,33,29,.34);
+  --tint-1:0; --tint-2:0;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.55;mix-blend-mode:multiply;
+  background:radial-gradient(1px 1px at 8% 12%,rgba(90,80,60,.14),transparent 40%),radial-gradient(1px 1px at 34% 58%,rgba(90,80,60,.10),transparent 40%),radial-gradient(1.5px 1.5px at 62% 24%,rgba(90,80,60,.08),transparent 45%),radial-gradient(1px 1px at 86% 70%,rgba(90,80,60,.12),transparent 40%),radial-gradient(1px 1px at 48% 88%,rgba(90,80,60,.09),transparent 42%)}
+::selection{background:var(--cinnabar);color:#F6F1E7}
+button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+
+/* 刊头 */
+.masthead{border-bottom:3px double var(--ink);background:var(--paper)}
+.masthead .wrap{display:flex;align-items:baseline;gap:14px;padding-top:14px;padding-bottom:10px;flex-wrap:wrap}
+.masthead h1{font-family:var(--display);font-size:26px;font-weight:900;letter-spacing:.14em}
+.masthead h1 sup{font-size:10px;font-weight:600;color:var(--cinnabar);letter-spacing:.1em;margin-left:6px}
+.masthead .edition{font-family:var(--display);font-size:13px;letter-spacing:.12em;color:var(--ink-2)}
+.masthead .edition b{color:var(--cinnabar);font-weight:700}
+.masthead .issue{margin-left:auto;font-size:11px;color:var(--mut);letter-spacing:.1em;text-align:right;line-height:1.5}
+.masthead .issue b{display:block;font-family:var(--display);font-size:14px;color:var(--ink)}
+/* 刊期刻度尺 */
+.timeline{position:relative;height:34px;margin-top:8px;cursor:ew-resize;touch-action:none;user-select:none}
+.timeline .rule{position:absolute;left:0;right:0;top:15px;height:1px;background:var(--line-2)}
+.timeline .tick{position:absolute;top:8px;width:1px;height:15px;background:var(--mut);transform:translateX(-50%)}
+.timeline .tick.big{height:19px;background:var(--ink-2)}
+.timeline .tick span{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--faint);letter-spacing:.04em;white-space:nowrap}
+.timeline .zone{position:absolute;top:2px;height:12px;transform:translateX(-50%);font-size:8px;letter-spacing:.16em;color:var(--faint);writing-mode:vertical-rl;text-orientation:mixed;pointer-events:none}
+.timeline .needle{position:absolute;top:2px;width:0;height:0;transform:translateX(-50%);border-left:7px solid transparent;border-right:7px solid transparent;border-top:11px solid var(--cinnabar);transition:left .25s linear}
+.timeline .needle::after{content:'';position:absolute;left:-4px;top:-11px;width:8px;height:8px;background:var(--cinnabar);border-radius:50%}
+
+/* 栏目表（页签） */
+.sections{border-bottom:1px solid var(--line);background:var(--paper)}
+.sections .wrap{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.sections .wrap::-webkit-scrollbar{display:none}
+.sec-tab{position:relative;padding:10px 14px 8px;font-size:13px;color:var(--mut);letter-spacing:.08em;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s}
+.sec-tab:hover{color:var(--ink)}
+.sec-tab.on{color:var(--ink);border-bottom-color:var(--cinnabar);font-weight:700}
+.sec-tab .no{font-family:var(--display);font-size:10px;color:var(--cinnabar);margin-right:5px}
+
+/* 主版面 */
+.edition{border-bottom:1px solid var(--line-2);background:var(--paper-2);position:relative}
+.edition::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.5),transparent 60%)}
+.section-head{display:flex;align-items:baseline;gap:14px;padding:22px 22px 6px;border-bottom:1px solid var(--line)}
+.section-head h2{font-family:var(--display);font-size:23px;font-weight:900;letter-spacing:.1em}
+.section-head .sub{font-size:11px;color:var(--mut);letter-spacing:.06em}
+.section-head .folio{margin-left:auto;font-family:var(--display);font-size:12px;color:var(--cinnabar);letter-spacing:.1em}
+.pageno{text-align:right;padding:8px 22px 14px;font-size:10px;color:var(--faint);letter-spacing:.16em}
+
+/* 版面内容 */
+.body{padding:18px 22px 4px;display:none}
+.body.on{display:block}
+.body h3.lede{font-family:var(--display);font-size:12px;letter-spacing:.2em;color:var(--cinnabar);margin-bottom:12px;font-weight:700}
+
+/* ===== 头条版面（选题池）：三档版式 ===== */
+.lede-grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:860px){.lede-grid{grid-template-columns:2fr 1fr;gap:18px}}
+.col{display:flex;flex-direction:column;gap:12px}
+.zone-label{font-size:10px;letter-spacing:.22em;color:var(--faint);border-bottom:1px dashed var(--line);padding-bottom:4px}
+.zone-label i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cinnabar);margin-right:7px;vertical-align:1px}
+.zone-label.mid i{background:var(--ink-2)}
+.zone-label.pad i{background:var(--faint)}
+/* 卡 */
+.card{position:relative;background:var(--paper-2);border:1px solid var(--line);cursor:grab;touch-action:none;transition:box-shadow .2s,transform .2s;user-select:none}
+.card:hover{box-shadow:0 3px 0 rgba(35,33,29,.05)}
+.card.dragging{opacity:.85;box-shadow:0 10px 24px rgba(35,33,29,.18);z-index:20;transform:scale(1.02)}
+.card .cno{position:absolute;right:-1px;top:-1px;background:var(--cinnabar);color:#F6F1E7;font-family:var(--display);font-size:10px;padding:2px 8px;letter-spacing:.08em}
+.card .cno.mid{background:var(--ink-2)}
+.card .cno.pad{background:var(--faint)}
+.card h4{font-family:var(--display);font-weight:900;line-height:1.35}
+.card p{font-size:12px;color:var(--mut);line-height:1.7}
+.card .meta{display:flex;gap:10px;font-size:9.5px;color:var(--faint);letter-spacing:.08em}
+.card .meta b{color:var(--cinnabar);font-weight:600}
+/* 头条卡 */
+.card.head h4{font-size:19px;letter-spacing:.03em}
+.card.head p{font-size:13px;color:var(--ink-2)}
+.card.head .meta{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+/* 中栏卡 */
+.card.std h4{font-size:14.5px}
+.card.std{padding:12px 14px}
+.card.std p{font-size:11.5px}
+.card.std .meta{margin-top:8px}
+/* 补白卡 */
+.card.pad{display:flex;align-items:baseline;gap:9px;border-style:dashed;background:transparent}
+.card.pad h4{font-size:12px;font-weight:600}
+.card.pad .meta{white-space:nowrap}
+/* 档位切换（移动端等价） */
+.card .rank-ctl{position:absolute;right:34px;top:-1px;display:flex;gap:0;border-left:1px solid var(--line)}
+.card .rank-ctl button{font-size:9px;padding:2px 7px;color:var(--mut);border-right:1px solid var(--line);letter-spacing:.05em}
+.card .rank-ctl button:hover{color:var(--ink)}
+.card .rank-ctl button.on{background:var(--ink);color:var(--paper-2)}
+
+/* ===== 编辑台（创作台） ===== */
+.desk-card{border:1px solid var(--line);background:var(--paper-2);margin-bottom:12px}
+.desk-card .d-head{display:flex;align-items:baseline;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.desk-card .d-head h4{font-family:var(--display);font-size:15px;font-weight:900}
+.desk-card .d-head .prog{margin-left:auto;font-size:10px;color:var(--mut);letter-spacing:.06em}
+.desk-card .d-head .prog b{color:var(--cinnabar);font-family:var(--display)}
+.desk-card .d-body{padding:10px 14px;font-size:12.5px;color:var(--ink-2);line-height:1.8}
+.desk-card .d-body em{font-style:normal;background:linear-gradient(transparent 68%,rgba(194,59,46,.22) 68%)}
+.desk-card .d-note{padding:7px 14px;font-size:11px;color:var(--cinnabar);border-top:1px dashed rgba(194,59,46,.4);letter-spacing:.05em}
+.desk-card .d-note::before{content:'朱砂批注 ';font-weight:700}
+.desk-card .d-meta{padding:6px 14px;font-size:9.5px;color:var(--faint);letter-spacing:.1em}
+
+/* ===== 刊库（作品库） ===== */
+.shelf{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media (min-width:860px){.shelf{grid-template-columns:repeat(4,1fr)}}
+.book{border:1px solid var(--line);background:var(--paper-2);padding:12px 12px 10px;position:relative}
+.book::before{content:'';position:absolute;left:5px;top:5px;bottom:5px;width:2px;background:var(--line-2);opacity:.5}
+.book b{font-family:var(--display);font-size:12.5px;display:block;line-height:1.5}
+.book span{font-size:9.5px;color:var(--faint);letter-spacing:.06em;display:block;margin-top:6px}
+.book .cov{font-family:var(--display);font-size:18px;color:var(--cinnabar);display:block;margin-bottom:6px}
+
+/* ===== 出版日历 ===== */
+.cal-line{border-left:2px solid var(--line-2);margin-left:8px;padding-left:20px;position:relative}
+.cal-line::before{content:'';position:absolute;left:-3px;top:6px;width:6px;height:6px;border-radius:50%;background:var(--cinnabar)}
+.cal-item{position:relative;padding:8px 0 14px;border-bottom:1px dashed var(--line);max-width:640px}
+.cal-item:last-child{border-bottom:0}
+.cal-item .day{font-family:var(--display);font-size:11px;color:var(--cinnabar);letter-spacing:.16em}
+.cal-item h4{font-family:var(--display);font-size:14px;margin:3px 0 2px}
+.cal-item p{font-size:11px;color:var(--mut)}
+.cal-item.today{background:linear-gradient(transparent 92%,rgba(194,59,46,.14) 92%)}
+.cal-item .flag{display:inline-block;font-size:9px;color:var(--cinnabar);border:1px solid rgba(194,59,46,.5);padding:0 6px;border-radius:2px;margin-left:8px;letter-spacing:.1em}
+
+/* ===== 体例手册 ===== */
+.handbook{columns:1;gap:14px}
+@media (min-width:860px){.handbook{columns:2}}
+.hb{border:1px solid var(--line);background:var(--paper-2);padding:11px 13px;margin-bottom:12px;break-inside:avoid}
+.hb b{font-family:var(--display);font-size:12.5px;display:block;margin-bottom:4px}
+.hb b::before{content:'§ ';color:var(--cinnabar)}
+.hb p{font-size:11px;color:var(--mut);line-height:1.75}
+
+/* 小样区（详情） */
+.specimen{margin:0 22px 16px;border:1px solid var(--line-2);background:var(--paper-3);display:none;position:relative}
+.specimen.open{display:block}
+.specimen::before{content:'稿件小样 · 样张';position:absolute;left:-1px;top:-1px;background:var(--ink);color:var(--paper-2);font-size:9px;letter-spacing:.2em;padding:3px 10px}
+.specimen .sp-in{padding:34px 26px 22px}
+.specimen h5{font-family:var(--display);font-size:20px;font-weight:900;line-height:1.4;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:10px}
+.specimen .sp-body{font-size:13px;color:var(--ink-2);line-height:2}
+.specimen .sp-body .note{color:var(--cinnabar);font-size:12px;margin-top:10px;padding-top:8px;border-top:1px dashed rgba(194,59,46,.4)}
+.specimen .sp-meta{margin-top:12px;font-size:9.5px;color:var(--faint);letter-spacing:.12em}
+.specimen .sp-close{position:absolute;right:0;top:0;padding:6px 12px;font-size:10px;color:var(--cinnabar);letter-spacing:.1em}
+
+/* 版务栏 */
+.serv{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);background:var(--paper);padding:11px 22px}
+.serv .sv{font-size:10.5px;color:var(--mut);letter-spacing:.06em}
+.serv .sv b{color:var(--ink)}
+.serv .rank-key{display:flex;gap:14px;margin-left:auto;font-size:9.5px;color:var(--faint)}
+.serv .rank-key i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.serv .rank-key .r1 i{background:var(--cinnabar)}
+.serv .rank-key .r2 i{background:var(--ink-2)}
+.serv .rank-key .r3 i{background:var(--faint)}
+
+/* 页脚 */
+.footer{border-top:1px solid var(--line-2);margin-top:0;padding:20px 0 30px;background:var(--paper)}
+.footer p{font-size:11px;color:var(--mut);line-height:1.9}
+.footer .src{font-size:9.5px;color:var(--faint)}
+@media (prefers-reduced-motion: reduce){
+  .timeline .needle{transition:none}
+  .card{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <h1>墨刊<sup>创作编辑部</sup></h1>
+    <span class="edition">本日刊号 · <b id="edName">晨刊</b></span>
+    <div class="issue"><b id="edClock">10:00</b><span id="edPhase">灵感时段 · 纸色晨黄</span></div>
+  </div>
+</header>
+
+<section class="wrap">
+  <div class="timeline" id="timeline" role="slider" aria-label="刊期时刻">
+    <span class="zone" style="left:12.5%">晨刊</span><span class="zone" style="left:37.5%">午刊</span><span class="zone" style="left:62.5%">晚报</span><span class="zone" style="left:87.5%">夜读</span>
+    <span class="tick big" style="left:0"><span>0</span></span>
+    <span class="tick" style="left:16.67%"></span>
+    <span class="tick big" style="left:33.33%"><span>8</span></span>
+    <span class="tick" style="left:50%"></span>
+    <span class="tick big" style="left:66.67%"><span>16</span></span>
+    <span class="tick" style="left:83.33%"></span>
+    <span class="tick big" style="left:100%"><span>24</span></span>
+    <span class="rule"></span>
+    <span class="needle" id="needle" style="left:41.67%"></span>
+  </div>
+  <div class="sections" id="sections"></div>
+</section>
+
+<main class="edition">
+  <div class="section-head">
+    <h2 id="secTitle">头条版面</h2>
+    <span class="sub" id="secSub">选题池 · 三档版式</span>
+    <span class="folio" id="folio">第 Ⅰ 版</span>
+  </div>
+
+  <section class="body on" id="body-head">
+    <h3 class="lede">本刊头条 · 高优先选题先登</h3>
+    <div class="lede-grid">
+      <div class="col zone-head"><div class="zone-label"><i></i>头条区 · 优先级一</div><div class="zones" id="zones-head" data-zone="head"></div></div>
+      <div class="col">
+        <div class="zone-label mid"><i></i>中栏区 · 优先级二</div>
+        <div class="zones" id="zones-mid" data-zone="mid"></div>
+        <div class="zone-label pad"><i></i>补白区 · 优先级三</div>
+        <div class="zones" id="zones-pad" data-zone="pad"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="body" id="body-desk">
+    <h3 class="lede">编辑台 · 正在校对的稿子</h3>
+    <div id="deskList"></div>
+  </section>
+
+  <section class="body" id="body-shelf">
+    <h3 class="lede">刊库 · 已出版的合订本</h3>
+    <div class="shelf" id="shelfGrid"></div>
+  </section>
+
+  <section class="body" id="body-cal">
+    <h3 class="lede">出版日历 · 出刊节奏</h3>
+    <div class="cal-line" id="calList"></div>
+  </section>
+
+  <section class="body" id="body-hb">
+    <h3 class="lede">体例手册 · 编辑部的规矩</h3>
+    <div class="handbook" id="hbList"></div>
+  </section>
+
+  <div class="specimen" id="specimen">
+    <button class="sp-close" id="spClose" type="button">收起样张</button>
+    <div class="sp-in"><h5 id="spTitle"></h5><div class="sp-body" id="spBody"></div><div class="sp-meta" id="spMeta"></div></div>
+  </div>
+
+  <div class="serv">
+    <span class="sv">当前版面 · <b id="svSec">头条版面</b></span>
+    <span class="sv">刊号 · <b id="svEd">晨刊</b></span>
+    <span class="sv">时刻 · <b id="svTime">10:00</b></span>
+    <span class="rank-key"><span class="r1"><i></i>头条</span><span class="r2"><i></i>中栏</span><span class="r3"><i></i>补白</span></span>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>墨刊 · 创作编辑部为原创 UI 设计：将「创作面板」的信息架构重装为印刷刊物语言——<b>优先级=版面地位</b>（头条/中栏/补白）、<b>时间=刊号</b>（晨刊/午刊/晚报/夜读）、<b>状态=纸墨</b>（纸色随刊号流转）。内容数据全部虚构。</p>
+    <p class="src">方法论来源 · Xuan子《AI做界面》系列（找起点 / 讲清交互 / 一轮一个具体意见 / AI 自检，已查证）——本作刻意背离其深色发光审美，试验纸墨印刷体系</p>
+  </div>
+</footer>
+
+<script>
+/* ================= 数据（虚构） ================= */
+const IDEAS=[
+ {id:'i1',t:'创作面板还能怎么换风格？',lead:'三套风格合集只是起点——把「换风格」变成编辑部的日常排期，本周连更三期。',rank:'head',tag:'系列策划',date:'周一 08:00'},
+ {id:'i2',t:'新手怎么给 AI 说清楚「高级感」',lead:'一句话拆成六条可执行提示。',rank:'mid',tag:'教程',date:'周二 09:30'},
+ {id:'i3',t:'白纸生长动画拆解',lead:'逐帧还原面板生长动效。',rank:'mid',tag:'拆解',date:'周三 10:00'},
+ {id:'i4',t:'一个按钮的四种微交互',lead:'旧闻存档 · 补白重刊。',rank:'pad',tag:'存档',date:'上周'}
+];
+const DESK=[
+ {id:'d1',t:'创作面板·三版风格合集',prog:62,body:'<p>深色版保留光球呼吸，但把模块改成<em>版面化排列</em>；浅灰版整体降饱和；新拟物版用同色系内凹外凸。三版共用同一套数据源与交互状态机。</p>',note:'结尾需补一段复盘，说明三版各自适合什么场景',meta:'写稿进度 62% · 今日待写 1 篇'},
+ {id:'d2',t:'墨刊编辑部 · 刊头排印',prog:38,body:'<p>刊头用双线栏与朱砂刊号，<em>栏目表采用下划线激活</em>，正文衬线配小字号说明。</p>',note:'刊头与刻度尺的间距再收紧 4px',meta:'写稿进度 38% · 排印中'},
+ {id:'d3',t:'编辑台 · 朱砂批注规范',prog:81,body:'<p>批注一律朱砂、置于稿尾虚线之上，<em>正文用衬线标注</em>强调。</p>',note:'补一条「批注措辞」示例',meta:'写稿进度 81% · 待终校'}
+];
+const SHELF=[
+ {cov:'壹',t:'AI做界面 · 先做功能还是先做UI',tag:'总结期 · 六模块',y:'2026.09'},
+ {cov:'贰',t:'神经网络光球 · 呼吸语言',tag:'视觉实验',y:'2026.10'},
+ {cov:'叁',t:'创作面板 · 三版风格合集',tag:'演进复现',y:'2026.10'},
+ {cov:'肆',t:'墨刊编辑部 · 纸墨体系',tag:'原创设计',y:'2026.10'}
+];
+const CAL=[
+ {day:'周一 10-19',t:'头条版面换稿',p:'选题池高优先转入编辑台',flag:'排期'},
+ {day:'周二 10-20',t:'午刊发布 · 教程篇',p:'「高级感」六条提示上线',flag:''},
+ {day:'周三 10-21',t:'编辑台审校',p:'三版合集终校',flag:'审校'},
+ {day:'周六 10-24',t:'复盘窗口',p:'本周三篇复盘 · 入刊库',flag:''}
+];
+const HB=[
+ {t:'版面即优先级',p:'头条区只放一件高优先事项；中栏放两件在推进的；补白放存档与灵感。版面地位就是资源投入。'},
+ {t:'朱砂只用于批注',p:'正文墨色、说明灰色、批注朱砂。红色不是装饰，是「这里要改」的唯一含义。'},
+ {t:'刊号决定纸色',p:'晨刊偏米、午刊近白、晚报偏暖、夜读偏灰。读者一抬眼就知道现在是哪一刊。'},
+ {t:'一个版面一件事',p:'每个版面只有一个任务焦点，其余全部是说明与背景，不并列两个主角。'},
+ {t:'数据说话不上演',p:'进度、时刻、日期写实；没有数据支撑的表述不入刊。'}
+];
+const SECTIONS=[
+ {id:'head', title:'头条版面', sub:'选题池 · 三档版式', folio:'第 Ⅰ 版', lede:'本刊头条 · 高优先选题先登'},
+ {id:'desk', title:'编辑台', sub:'创作台 · 正在校对的稿子', folio:'第 Ⅱ 版', lede:'编辑台 · 稿子在手才算数'},
+ {id:'shelf', title:'刊库', sub:'作品库 · 已出版的合订本', folio:'第 Ⅲ 版', lede:'刊库 · 过往即资产'},
+ {id:'cal',  title:'出版日历', sub:'日历表 · 出刊节奏', folio:'第 Ⅳ 版', lede:'出版日历 · 先把节奏定下来'},
+ {id:'hb',   title:'体例手册', sub:'方法库 · 编辑部的规矩', folio:'第 Ⅴ 版', lede:'体例手册 · 沉淀过的才算数'}
+];
+const EDITIONS=[
+ {name:'晨刊', h0:6, h1:11, paper:'#F2EDE3', desc:'灵感时段 · 纸色晨米'},
+ {name:'午刊', h0:11, h1:17, paper:'#F4F0E4', desc:'写稿时段 · 纸色近白'},
+ {name:'晚报', h0:17, h1:21, paper:'#F0E4D2', desc:'发布时段 · 纸色暖黄'},
+ {name:'夜读', h0:21, h1:6,  paper:'#E2DED2', desc:'复盘时段 · 纸色灰蓝'}
+];
+let hour=10,cycling=false,curSec='head';
+
+/* ================= 时刻 / 刊号 ================= */
+const needle=document.getElementById('needle');
+function editionAt(h){if(h>=6&&h<11)return EDITIONS[0];if(h>=11&&h<17)return EDITIONS[1];if(h>=17&&h<21)return EDITIONS[2];return EDITIONS[3];}
+function applyHour(h){
+  hour=Math.max(0,Math.min(24,h));
+  const ed=editionAt(hour);
+  needle.style.left=(hour/24*100)+'%';
+  document.documentElement.style.setProperty('--paper',ed.paper);
+  const H=Math.floor(hour),M=Math.round((hour-H)*60);
+  if(M===60){hour=H+1;return applyHour(hour);}
+  const t=(H<10?'0':'')+H+':'+(M<10?'0':'')+M;
+  document.getElementById('edName').textContent=ed.name;
+  document.getElementById('edClock').textContent=t;
+  document.getElementById('edPhase').textContent=ed.desc;
+  document.getElementById('svEd').textContent=ed.name;
+  document.getElementById('svTime').textContent=t;
+}
+const timeline=document.getElementById('timeline');
+function tlX(e){const r=timeline.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));}
+timeline.addEventListener('pointerdown',e=>{timeline.setPointerCapture(e.pointerId);applyHour(tlX(e)*24);});
+timeline.addEventListener('pointermove',e=>{if(e.buttons)applyHour(tlX(e)*24);});
+document.getElementById('btnCycle')&&0;
+const ctlBar=document.querySelector('.serv');
+const cycleBtn=document.createElement('button');
+cycleBtn.type='button';cycleBtn.textContent='自动出刊';
+cycleBtn.style.cssText='font-size:10.5px;color:var(--cinnabar);border:1px solid rgba(194,59,46,.5);padding:3px 12px;border-radius:3px;letter-spacing:.1em';
+cycleBtn.addEventListener('click',()=>{cycling=!cycling;cycleBtn.textContent=cycling?'停止流转':'自动出刊';cycleBtn.style.background=cycling?'var(--cinnabar)':'transparent';cycleBtn.style.color=cycling?'#F6F1E7':'var(--cinnabar)';});
+ctlBar.querySelector('.rank-key').before(cycleBtn);
+setInterval(()=>{if(cycling)applyHour((hour+0.05)%24);},200);
+applyHour(10);
+
+/* ================= 版面 ================= */
+const secTitle=document.getElementById('secTitle'),secSub=document.getElementById('secSub'),
+  folio=document.getElementById('folio'),svSec=document.getElementById('svSec');
+const sectionsEl=document.getElementById('sections');
+SECTIONS.forEach(s=>{
+  const tab=document.createElement('button');
+  tab.type='button';tab.className='sec-tab';tab.dataset.id=s.id;
+  tab.innerHTML='<span class="no">'+s.folio.replace('第 ','').replace(' 版','')+'</span>'+s.title;
+  tab.addEventListener('click',()=>switchSec(s.id));
+  sectionsEl.appendChild(tab);
+});
+function switchSec(id){
+  curSec=id;
+  const s=SECTIONS.find(x=>x.id===id);
+  document.querySelectorAll('.sec-tab').forEach(x=>x.classList.toggle('on',x.dataset.id===id));
+  document.querySelectorAll('.body').forEach(x=>x.classList.toggle('on',x.id==='body-'+id));
+  secTitle.textContent=s.title;secSub.textContent=s.sub;folio.textContent=s.folio;svSec.textContent=s.title;
+  closeSpecimen();
+}
+switchSec('head');
+
+/* ================= 头条版面：三档版式 ================= */
+const RANK_LABEL={head:{n:'头条区',cls:'head'},mid:{n:'中栏区',cls:'std'},pad:{n:'补白区',cls:'pad'}};
+function renderHead(){
+  ['head','mid','pad'].forEach(z=>{
+    const el=document.getElementById('zones-'+z);
+    el.innerHTML='';
+    IDEAS.filter(i=>i.rank===z).forEach(it=>{
+      const c=document.createElement('div');
+      c.className='card '+RANK_LABEL[z].cls;c.dataset.id=it.id;c.dataset.rank=z;
+      c.innerHTML='<span class="cno '+(z==='head'?'':z==='mid'?'mid':'pad')+'">'+(z==='head'?'A':z==='mid'?'B':'C')+'</span>'
+        +'<div class="rank-ctl" aria-label="换档"><button data-r="head" type="button" class="'+(z==='head'?'on':'')+'">高</button><button data-r="mid" type="button" class="'+(z==='mid'?'on':'')+'">中</button><button data-r="pad" type="button" class="'+(z==='pad'?'on':'')+'">低</button></div>'
+        +'<h4>'+it.t+'</h4>'+(it.lead?'<p>'+it.lead+'</p>':'')
+        +'<div class="meta"><b>'+it.tag+'</b><span>'+it.date+'</span></div>';
+      el.appendChild(c);
+      c.addEventListener('click',e=>{if(e.target.closest('.rank-ctl'))return;openSpecimen(it);});
+      c.querySelectorAll('.rank-ctl button').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();setRank(it.id,b.dataset.r);}));
+    });
+  });
+}
+function setRank(id,r){
+  const it=IDEAS.find(x=>x.id===id);
+  if(it.rank===r)return;
+  it.rank=r;renderHead();
+  toast('「'+it.t.slice(0,12)+'…」移至'+RANK_LABEL[r].n);
+}
+/* 拖拽换档 */
+let drag=null;
+document.addEventListener('pointerdown',e=>{
+  if(curSec!=='head')return;
+  const card=e.target.closest('.card');
+  if(!card||e.target.closest('.rank-ctl'))return;
+  const r=card.getBoundingClientRect();
+  drag={id:card.dataset.id,card:card,ox:e.clientX-r.left,oy:e.clientY-r.top};
+  card.classList.add('dragging');
+  card.style.position='fixed';card.style.left=(r.left)+'px';card.style.top=(r.top)+'px';
+  card.style.width=r.width+'px';card.style.zIndex='20';
+  e.preventDefault();
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  drag.card.style.left=(e.clientX-drag.ox)+'px';
+  drag.card.style.top=(e.clientY-drag.oy)+'px';
+});
+document.addEventListener('pointerup',e=>{
+  if(!drag)return;
+  const zones=['head','mid','pad'];
+  let target=null;
+  for(const z of zones){
+    const el=document.getElementById('zones-'+z);
+    const r=el.getBoundingClientRect();
+    const cy=e.clientY;
+    if(cy>=r.top-10&&cy<=r.bottom+10){target=z;break;}
+  }
+  const it=IDEAS.find(x=>x.id===drag.id);
+  if(target&&target!==it.rank){
+    it.rank=target;toast('「'+it.t.slice(0,12)+'…」拖至'+RANK_LABEL[target].n);
+  }
+  drag.card.style.position='';drag.card.style.left='';drag.card.style.top='';drag.card.style.width='';drag.card.style.zIndex='';
+  drag.card.classList.remove('dragging');
+  drag=null;
+  renderHead();
+});
+renderHead();
+
+/* ================= 编辑台 ================= */
+const deskList=document.getElementById('deskList');
+function renderDesk(){
+  deskList.innerHTML='';
+  DESK.forEach(d=>{
+    const c=document.createElement('div');
+    c.className='desk-card';c.dataset.id=d.id;
+    c.innerHTML='<div class="d-head"><h4>'+d.t+'</h4><span class="prog">进度 <b>'+d.prog+'%</b></span></div>'
+      +'<div class="d-body">'+d.body+'</div>'
+      +'<div class="d-note">'+d.note+'</div>'
+      +'<div class="d-meta">'+d.meta+'</div>';
+    c.style.cursor='pointer';
+    c.addEventListener('click',()=>openSpecimen(d));
+    deskList.appendChild(c);
+  });
+}
+renderDesk();
+
+/* ================= 刊库 / 出版日历 / 体例手册 ================= */
+const shelfGrid=document.getElementById('shelfGrid');
+shelfGrid.innerHTML=SHELF.map(b=>'<div class="book"><span class="cov">'+b.cov+'</span><b>'+b.t+'</b><span>'+b.tag+' · '+b.y+'</span></div>').join('');
+const calList=document.getElementById('calList');
+calList.innerHTML=CAL.map((c,i)=>'<div class="cal-item'+(i===2?' today':'')+'"><div class="day">'+c.day+'<span class="flag">'+(c.flag||'')+'</span></div><h4>'+c.t+'</h4><p>'+c.p+'</p></div>').join('');
+const hbList=document.getElementById('hbList');
+hbList.innerHTML=HB.map(h=>'<div class="hb"><b>'+h.t+'</b><p>'+h.p+'</p></div>').join('');
+
+/* ================= 小样区（详情） ================= */
+function openSpecimen(it){
+  const sp=document.getElementById('specimen');
+  sp.classList.add('open');
+  document.getElementById('spTitle').textContent=it.t;
+  const body=it.body?it.body:('<p>'+(it.lead||it.p||it.tag||'')+'</p>');
+  document.getElementById('spBody').innerHTML=body+(it.note?'<div class="note">朱砂批注 · '+it.note+'</div>':'');
+  document.getElementById('spMeta').textContent='样张编号 '+it.id+' · '+(it.date||it.meta||it.y||'');
+  sp.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closeSpecimen(){const el=document.getElementById('specimen');if(el)el.classList.remove('open');}
+document.getElementById('spClose').addEventListener('click',closeSpecimen);
+
+/* ================= Toast ================= */
+let _t=null;
+function toast(msg){
+  let el=document.querySelector('.mk-toast');
+  if(!el){el=document.createElement('div');el.className='mk-toast';el.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(16px);background:var(--ink);color:var(--paper-2);font-size:12px;padding:9px 18px;border-radius:3px;letter-spacing:.05em;opacity:0;pointer-events:none;transition:all .3s;z-index:99;box-shadow:0 8px 24px rgba(35,33,29,.3)';document.body.appendChild(el);}
+  el.textContent=msg;
+  el.style.opacity='1';el.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(_t);_t=setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(-50%) translateY(16px)';},1800);
+}
+
+applyHour(18);
+setRank('i2','head');
+switchSec('desk');
+openSpecimen(DESK[0]);
+</script>
+</body>
+</html>

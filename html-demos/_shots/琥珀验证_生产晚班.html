@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>液态琥珀 · AI 员工中枢</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='g' cx='38%25' cy='32%25' r='80%25'%3E%3Cstop offset='0%25' stop-color='%23F8DCAB'/%3E%3Cstop offset='55%25' stop-color='%23E8B06A'/%3E%3Cstop offset='100%25' stop-color='%237C4E24'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='13' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='rgba(255,240,210,.55)' stroke-width='1'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --font:'Noto Sans SC',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+  --display:'Noto Serif SC','Songti SC',serif;
+  --bg:#171210; --bg-2:#1E1813;
+  --ink:#F3EBD9; --mut:#B8A98C; --faint:#7A6F57;
+  --amber:#E8B06A; --amber-2:#F2C98F; --amber-deep:#8A5A2E;
+  --glass-hi:rgba(255,235,200,.16); --glass-lo:rgba(255,235,200,.05);
+  --line:rgba(242,201,143,.18);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:
+  radial-gradient(620px 420px at 78% 12%,rgba(232,176,106,.10),transparent 65%),
+  radial-gradient(520px 380px at 12% 88%,rgba(138,90,46,.12),transparent 65%),
+  radial-gradient(900px 700px at 50% 45%,rgba(232,176,106,.05),transparent 70%)}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.5;mix-blend-mode:overlay;
+  background-image:radial-gradient(rgba(255,255,255,.55) .5px,transparent .6px);background-size:3px 3px}
+::selection{background:var(--amber);color:#171210}
+button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 22px}
+
+/* 顶栏 */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(23,18,16,.72);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;gap:12px;height:60px}
+.topbar .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:.1em}
+.topbar .brand .orb{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 36% 30%,var(--amber-2),var(--amber) 55%,var(--amber-deep));box-shadow:0 0 14px rgba(232,176,106,.55);position:relative}
+.topbar .brand .orb::after{content:'';position:absolute;inset:2px;border-radius:50%;border:1px solid rgba(255,240,210,.4)}
+.topbar .cmd{margin-left:auto;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:6px 14px;font-size:11px;color:var(--mut);background:rgba(255,235,200,.04);transition:border-color .2s}
+.topbar .cmd:hover{border-color:rgba(242,201,143,.4);color:var(--ink)}
+.topbar .cmd kbd{font-family:var(--font);font-size:9px;color:var(--faint);border:1px solid var(--line);border-radius:5px;padding:1px 5px;background:rgba(255,235,200,.05)}
+
+/* hero */
+.hero{padding:32px 0 6px;text-align:center}
+.hero .eyebrow{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.3em;color:var(--amber-2)}
+.hero h2{font-family:var(--display);font-size:clamp(24px,3.8vw,35px);font-weight:900;margin:10px 0 6px;letter-spacing:.04em}
+.hero p{max-width:680px;margin:0 auto;color:var(--mut);font-size:13px}
+.hero .tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.hero .tags span{font-size:10.5px;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:rgba(255,235,200,.03)}
+.hero .tags span b{color:var(--amber-2);font-weight:600}
+
+/* 主区 */
+.section{margin-top:20px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:linear-gradient(180deg,rgba(255,235,200,.035),rgba(255,235,200,.012));backdrop-filter:blur(6px)}
+.desktop{display:grid;grid-template-columns:1fr}
+@media (min-width:940px){.desktop{grid-template-columns:1fr 320px}}
+
+/* 中央液池 */
+.stage{position:relative;min-height:600px;overflow:hidden}
+@media (min-width:940px){.stage{min-height:640px}}
+.stage::before{content:'';position:absolute;inset:0;background:
+  radial-gradient(540px 420px at 50% 44%,rgba(232,176,106,.09),transparent 68%),
+  radial-gradient(340px 260px at 50% 44%,rgba(242,201,143,.10),transparent 70%)}
+.pool{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(430px,78%);aspect-ratio:16/9;border-radius:52% 48% 45% 55% / 48% 42% 58% 52%;
+  background:linear-gradient(160deg,rgba(242,201,143,.16),rgba(232,176,106,.07) 40%,rgba(138,90,46,.12));
+  backdrop-filter:blur(26px) saturate(1.5);
+  border:1px solid rgba(242,201,143,.28);
+  box-shadow:inset 0 1px 0 rgba(255,240,210,.4),inset 0 -18px 40px rgba(138,90,46,.25),0 24px 60px rgba(0,0,0,.4);
+  transition:border-radius 1.2s ease;z-index:2}
+.pool .t{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.pool .t b{display:block;font-family:var(--display);font-size:15px;letter-spacing:.12em;color:var(--amber-2)}
+.pool .t span{font-size:10px;color:var(--faint);letter-spacing:.14em}
+.pool .ring{position:absolute;inset:-18px;border:1px solid rgba(242,201,143,.14);border-radius:inherit;pointer-events:none}
+.pool .ring.r2{inset:-34px;opacity:.5}
+/* Agent 液滴 */
+.agent{position:absolute;z-index:5;width:96px;height:96px;border-radius:50%;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  background:radial-gradient(circle at 36% 28%,var(--amber-2),var(--amber) 52%,var(--amber-deep));
+  box-shadow:0 0 22px rgba(232,176,106,.35),inset 0 2px 6px rgba(255,245,220,.5),inset 0 -10px 18px rgba(120,66,26,.35);
+  transition:transform .35s cubic-bezier(.2,.9,.3,1.2),box-shadow .3s;touch-action:none}
+.agent::before{content:'';position:absolute;inset:3px;border-radius:50%;border:1px solid rgba(255,240,210,.35)}
+.agent::after{content:'';position:absolute;width:9px;height:9px;border-radius:50%;background:#fff7e6;top:20px;left:28px;filter:blur(1px);opacity:.8}
+.agent:hover{transform:translateY(-4px) scale(1.06);box-shadow:0 0 32px rgba(232,176,106,.55),inset 0 2px 6px rgba(255,245,220,.5),inset 0 -10px 18px rgba(120,66,26,.35)}
+.agent.on{transform:scale(1.14);box-shadow:0 0 44px rgba(242,201,143,.8),inset 0 2px 6px rgba(255,245,220,.5),inset 0 -10px 18px rgba(120,66,26,.35)}
+.agent.idle{filter:saturate(.55) brightness(.8);box-shadow:0 0 10px rgba(232,176,106,.14),inset 0 2px 6px rgba(255,245,220,.3),inset 0 -10px 18px rgba(120,66,26,.3)}
+.agent.off{filter:saturate(.2) brightness(.55)}
+.agent b{font-size:11px;letter-spacing:.06em;color:#241505;text-shadow:0 1px 0 rgba(255,240,210,.35)}
+.agent span{font-size:8px;color:rgba(60,30,8,.75);letter-spacing:.1em}
+.agent .work{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--amber-2);letter-spacing:.14em;white-space:nowrap;opacity:.85}
+.agent .work i{font-style:normal;display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber-2);margin-right:4px;vertical-align:1px;animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.agent.pulse{animation:orbPulse 2.2s ease-in-out infinite}
+@keyframes orbPulse{0%,100%{box-shadow:0 0 18px rgba(232,176,106,.35)}50%{box-shadow:0 0 40px rgba(242,201,143,.7)}}
+/* 时刻弧 */
+.arc{position:absolute;left:0;right:0;bottom:0;height:46px;z-index:6;background:linear-gradient(180deg,rgba(23,18,16,0),rgba(23,18,16,.75));cursor:ew-resize;touch-action:none}
+.arc .track{position:absolute;left:24px;right:24px;bottom:14px;height:2px;border-radius:2px;background:rgba(242,201,143,.14)}
+.arc .dot{position:absolute;bottom:7px;left:calc(var(--x)*1%);transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 36% 30%,var(--amber-2),var(--amber));box-shadow:0 0 12px rgba(232,176,106,.7);transition:left .2s linear}
+.arc .dot::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:38px;background:linear-gradient(180deg,transparent,rgba(242,201,143,.35),transparent)}
+.arc .tick{position:absolute;bottom:14px;width:1px;height:7px;background:rgba(242,201,143,.25)}
+.arc .tick.big{height:11px;background:rgba(242,201,143,.5)}
+.arc .tick span{position:absolute;bottom:27px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--faint);letter-spacing:.04em;white-space:nowrap}
+.arc .clk{position:absolute;left:10px;top:8px;font-size:9px;color:var(--faint);letter-spacing:.12em}
+.arc .clk b{color:var(--amber-2);font-size:12px;font-family:var(--display)}
+.arc .ph{position:absolute;right:10px;top:8px;font-size:9px;color:var(--faint);letter-spacing:.1em;text-align:right}
+.arc .ph b{color:var(--amber-2)}
+/* 阶段光点 */
+.seg{position:absolute;left:0;right:0;pointer-events:none;z-index:1;border-top:1px dashed rgba(242,201,143,.07)}
+.seg span{position:absolute;left:14px;top:8px;font-size:8.5px;color:var(--faint);letter-spacing:.16em}
+
+/* 轨迹面板 */
+.panel{border-top:1px solid var(--line);background:linear-gradient(180deg,rgba(255,235,200,.03),rgba(255,235,200,.012));padding:16px;display:flex;flex-direction:column;gap:12px}
+@media (min-width:940px){.panel{border-top:0;border-left:1px solid var(--line)}}
+.panel .ph{font-size:10px;letter-spacing:.18em;color:var(--faint);display:flex;align-items:center;gap:8px}
+.panel .ph::after{content:'';flex:1;height:1px;background:var(--line)}
+.trace-head{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,235,200,.045);backdrop-filter:blur(10px)}
+.trace-head .orb{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 36% 28%,var(--amber-2),var(--amber) 55%,var(--amber-deep));flex:none;box-shadow:0 0 16px rgba(232,176,106,.4)}
+.trace-head b{font-family:var(--display);font-size:14px;display:block}
+.trace-head span{font-size:10px;color:var(--faint)}
+.trace-head .st{margin-left:auto;font-size:9px;letter-spacing:.1em;color:var(--amber-2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.traces{display:flex;flex-direction:column;gap:8px}
+.tc{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:rgba(255,235,200,.03);display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;transition:border-color .2s}
+.tc:hover{border-color:rgba(242,201,143,.4)}
+.tc .tm{font-size:9px;color:var(--faint);letter-spacing:.06em;width:38px;font-variant-numeric:tabular-nums}
+.tc .body .tl{font-size:11px;color:var(--ink);font-weight:600}
+.tc .body .act{font-size:10px;color:var(--mut);margin-top:2px}
+.tc .rs{width:9px;height:9px;border-radius:50%;justify-self:end}
+.tc .rs.ok{background:var(--amber);box-shadow:0 0 8px rgba(232,176,106,.6)}
+.tc .rs.run{background:var(--amber-2);box-shadow:0 0 8px rgba(242,201,143,.8);animation:blink 1.2s infinite}
+.tc .rs.fail{background:#C96A5C;box-shadow:0 0 8px rgba(201,106,92,.5)}
+.agent-stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ast{border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;background:rgba(255,235,200,.03)}
+.ast b{font-size:13px;color:var(--amber-2);font-family:var(--display);display:block}
+.ast span{font-size:8.5px;color:var(--faint);letter-spacing:.08em}
+.panel .hint{font-size:9.5px;color:var(--faint);line-height:1.8}
+.panel .hint b{color:var(--amber-2);font-weight:600}
+
+/* 命令面板 */
+.cmdpalette{position:fixed;inset:0;z-index:80;display:none;align-items:flex-start;justify-content:center;padding:14vh 16px 16px;background:rgba(12,9,7,.55);backdrop-filter:blur(8px)}
+.cmdpalette.open{display:flex}
+.cmdpalette .box{width:min(560px,100%);border:1px solid rgba(242,201,143,.3);border-radius:16px;background:linear-gradient(180deg,rgba(38,30,24,.9),rgba(28,22,18,.92));box-shadow:0 30px 80px rgba(0,0,0,.55);overflow:hidden;backdrop-filter:blur(22px)}
+.cmdpalette input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-family:var(--font);font-size:14px;padding:15px 16px;border-bottom:1px solid var(--line)}
+.cmdpalette input::placeholder{color:var(--faint)}
+.cmdlist{max-height:330px;overflow:auto;padding:6px}
+.cmditem{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;font-size:12px}
+.cmditem:hover,.cmditem.sel{background:rgba(232,176,106,.14)}
+.cmditem .ci{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 36% 28%,var(--amber-2),var(--amber) 55%,var(--amber-deep));flex:none}
+.cmditem b{font-weight:600}
+.cmditem span{margin-left:auto;font-size:9px;color:var(--faint);letter-spacing:.06em}
+
+/* 概念卡 */
+.concepts{margin-top:20px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,rgba(255,235,200,.03),rgba(255,235,200,.012));padding:18px}
+.concepts h4{font-family:var(--display);font-size:15px;margin-bottom:4px}
+.concepts .cc-sub{font-size:11px;color:var(--faint);margin-bottom:12px}
+.cc-grid{display:grid;grid-template-columns:1fr;gap:8px}
+@media (min-width:760px){.cc-grid{grid-template-columns:repeat(2,1fr)}}
+.cc{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:rgba(255,235,200,.03)}
+.cc b{font-size:12px;display:block;margin-bottom:4px;color:var(--amber-2)}
+.cc p{font-size:11px;color:var(--mut);line-height:1.65}
+.cc .old{font-size:9.5px;color:var(--faint);text-decoration:line-through;margin-right:6px}
+.cc .new{font-size:9.5px;color:var(--amber-2);font-weight:700}
+
+footer{border-top:1px solid var(--line);padding:22px 0 34px;margin-top:8px;position:relative;z-index:1}
+footer p{font-size:11px;color:var(--mut);line-height:1.8}
+footer .src{font-size:9.5px;color:var(--faint)}
+@media (prefers-reduced-motion: reduce){
+  .agent.pulse{animation:none}
+  .arc .dot{transition:none}
+  .agent{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="orb"></span>液态琥珀<span style="font-size:11px;color:var(--faint);font-weight:500;letter-spacing:.16em">AI 员工中枢</span></div>
+    <button class="cmd" id="cmdBtn" type="button">全局命令<kbd>⌘ K</kbd></button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">LIQUID GLASS · AGENT OS · EXECUTION TRACE</span>
+    <h2>AI 员工，是五个悬浮的琥珀液滴</h2>
+    <p>这不是聊天机器人，是 Agent 工作操作系统。五个 AI 员工悬浮在融合池四周——采集、结构、生产、排期、质检；琥珀的浓度是优先级，液滴的呼吸是状态，点击它，今天执行过的每一条工具轨迹都会浮出玻璃。</p>
+    <div class="tags">
+      <span><b>玻璃=模块</b> 透明分层</span>
+      <span><b>琥珀=状态</b> 浓度定优先</span>
+      <span><b>液滴=员工</b> 五员在职</span>
+      <span><b>轨迹=历史</b> 工具调用可回看</span>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="section">
+    <div class="desktop">
+      <div class="stage" id="stage">
+        <div class="seg" style="top:18%"><span>采集 · 今日收获</span></div>
+        <div class="seg" style="top:38%"><span>生产 · 产出中</span></div>
+        <div class="seg" style="top:60%"><span>排期 · 待调度</span></div>
+        <div class="pool" id="pool"><div class="ring"></div><div class="ring r2"></div><div class="t"><b>融合池</b><span>拖液滴入池 · 派发协同任务</span></div></div>
+        <div id="agents"></div>
+        <div class="arc" id="arc" role="slider" aria-label="员工时刻">
+          <span class="clk">时刻 <b id="arcClock">10:00</b></span>
+          <span class="ph" id="arcPhase">阶段<b>采集</b> · 5 液滴在线</span>
+          <span class="tick big" style="left:24px"><span>0</span></span>
+          <span class="tick" style="left:calc(24px + 12.5%)"></span>
+          <span class="tick" style="left:calc(24px + 25%)"></span>
+          <span class="tick" style="left:calc(24px + 37.5%)"></span>
+          <span class="tick big" style="left:calc(24px + 50%)"><span>12</span></span>
+          <span class="tick" style="left:calc(24px + 62.5%)"></span>
+          <span class="tick" style="left:calc(24px + 75%)"></span>
+          <span class="tick" style="left:calc(24px + 87.5%)"></span>
+          <span class="tick big" style="left:calc(100% - 24px)"><span>24</span></span>
+          <span class="track"></span>
+          <span class="dot" id="arcDot"></span>
+        </div>
+      </div>
+      <aside class="panel">
+        <div class="ph">EXECUTION TRACE · 执行轨迹</div>
+        <div class="trace-head" id="traceHead">
+          <span class="orb" id="thOrb"></span>
+          <div><b id="thName">—</b><span id="thRole">—</span></div>
+          <span class="st" id="thState">—</span>
+        </div>
+        <div class="traces" id="traces"></div>
+        <div class="ph">TEAM STATUS · 团队状态</div>
+        <div class="agent-stat" id="teamStat"></div>
+        <div class="hint">点击任意液滴查看它今天的<b>工具调用轨迹</b>；把液滴<b>拖入融合池</b>派发协同任务；按 <b>⌘ K</b> 唤起全局命令。</div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="concepts">
+    <h4>把「Agent 工作操作系统」做成一片液态玻璃</h4>
+    <p class="cc-sub">第四套审美实验——依据公开资源库「AI Employee OS」蓝图（Liquid Glass / Spatial UI / Raycast 命令面板 / 执行轨迹）：继深色太空、纸墨印刷、地质剖面之后，用琥珀液态玻璃承载 Agent 系统。</p>
+    <div class="cc-grid">
+      <div class="cc"><b>玻璃 · 模块透明</b><p><span class="old">实心卡片墙</span><span class="new">液态玻璃分层</span>：面板半透明、可折射，信息像浸在琥珀里——层级靠模糊与辉度，不靠边框堆砌。</p></div>
+      <div class="cc"><b>琥珀 · 状态浓度</b><p><span class="old">红黄绿状态灯</span><span class="new">琥珀浓度</span>：工作中的员工琥珀饱满、待命淡薄、离线灰冷——优先级即辉度，状态即浓度。</p></div>
+      <div class="cc"><b>液滴 · 员工在场</b><p><span class="old">侧边栏名单</span><span class="new">悬浮液滴</span>：员工是液体的一滴，靠近融合池即协同——空间位置表达协作关系，而非列表。</p></div>
+      <div class="cc"><b>轨迹 · 执行可回看</b><p><span class="old">聊天记录</span><span class="new">工具调用时间线</span>：Agent 不是对话泡泡，而是有执行历史的工人——每一条工具轨迹都可以展开、回看、验证。</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>液态琥珀 · AI 员工中枢为原创 UI 设计：依据公开资源库 OpenSource/（AI Employee OS 设计参考：Liquid Glass / cmdk 命令面板 / assistant-ui Thread-ToolCall 原语 / Samantha 琥珀液体语言 / 3D Knowledge Galaxy 蓝图）重构为第四套审美体系。内容与执行轨迹数据虚构。</p>
+    <p class="src">方法论来源 · Xuan子《AI做界面》系列 + 公开资源库 AI_EMPLOYEE_OS_UI_REFERENCE_LIBRARY.md（已读取核对）——延续「一轮一改」方法，审美与信息架构为原创</p>
+  </div>
+</footer>
+
+<!-- 命令面板 -->
+<div class="cmdpalette" id="cmdPalette">
+  <div class="box">
+    <input id="cmdInput" type="text" placeholder="输入命令：聚焦员工 / 查看轨迹 / 派发任务…" autocomplete="off">
+    <div class="cmdlist" id="cmdList"></div>
+  </div>
+</div>
+
+<script>
+/* ================= 数据（虚构） ================= */
+const AGENTS=[
+ {id:'a1',name:'采集',role:'灵感收集 · 全网源',state:'working',amber:92,
+  pos:{x:15,y:26},traces:[
+   {t:'09:02',tool:'源监听',act:'扫描选题源 · 新增 6 条',r:'ok'},
+   {t:'09:14',tool:'聚类',act:'归并同主题 → 3 簇',r:'ok'},
+   {t:'09:31',tool:'抓取',act:'精读 2 篇候选正文',r:'run'},
+   {t:'09:44',tool:'摘要',act:'生成灵感卡片 ×2',r:'ok'}]},
+ {id:'a2',name:'结构',role:'选题方法 · 拆解',state:'idle',amber:58,
+  pos:{x:64,y:14},traces:[
+   {t:'08:20',tool:'拆参考',act:'六维拆解 1 篇高赞',r:'ok'},
+   {t:'08:36',tool:'模型',act:'套用「三版合一」结构',r:'ok'}]},
+ {id:'a3',name:'生产',role:'作品产出 · 成稿',state:'working',amber:88,
+  pos:{x:13,y:66},traces:[
+   {t:'09:05',tool:'写作',act:'草稿：矿脉·创作地层',r:'ok'},
+   {t:'09:27',tool:'改稿',act:'首轮润色 · 删 18% 冗余',r:'ok'},
+   {t:'09:52',tool:'配图',act:'生成剖面配图 ×1',r:'run'},
+   {t:'10:02',tool:'排版',act:'版式校样',r:'ok'}]},
+ {id:'a4',name:'排期',role:'节奏调度 · 日历',state:'idle',amber:64,
+  pos:{x:68,y:62},traces:[
+   {t:'08:40',tool:'排程',act:'锁定周四发布窗口',r:'ok'},
+   {t:'09:18',tool:'占位',act:'预约复盘时段',r:'ok'}]},
+ {id:'a5',name:'质检',role:'复盘批注 · 把关',state:'off',amber:34,
+  pos:{x:42,y:78},traces:[
+   {t:'昨日',tool:'审校',act:'终审《墨刊编辑部》',r:'ok'},
+   {t:'昨日',tool:'批注',act:'朱砂批注 ×7',r:'ok'}]}
+];
+const SEGMENTS=[
+ {h0:0,h1:8,n:'采集',a:'a1',dep:'晨间 · 源监听中'},
+ {h0:8,h1:16,n:'生产',a:'a3',dep:'日中 · 成稿进行时'},
+ {h0:16,h1:22,n:'排期',a:'a4',dep:'午后 · 节奏调度'},
+ {h0:22,h1:24,n:'质检',a:'a5',dep:'深夜 · 终审把关'}
+];
+let hour=10,selected='a1',dragAgent=null;
+
+const stage=document.getElementById('stage'),agentsEl=document.getElementById('agents'),
+  arc=document.getElementById('arc'),arcDot=document.getElementById('arcDot'),
+  arcClock=document.getElementById('arcClock'),arcPhase=document.getElementById('arcPhase');
+
+/* ================= 液滴 ================= */
+function agentEl(a){
+  const el=document.createElement('div');
+  el.className='agent'+(a.state==='idle'?' idle':'')+(a.state==='off'?' off':'')+(a.state==='working'?' pulse':'');
+  el.dataset.id=a.id;
+  el.style.left=a.pos.x+'%';el.style.top=a.pos.y+'%';
+  el.style.filter='brightness('+(a.amber/70)+')';
+  el.innerHTML='<span class="work"'+(a.state==='working'?'':' style="display:none"')+'><i></i>工作中</span><b>'+a.name+'</b><span>'+a.role.split(' · ')[0]+'</span>';
+  el.addEventListener('click',()=>selectAgent(a.id));
+  /* 拖入融合池 */
+  el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);dragAgent=a.id;});
+  el.addEventListener('pointermove',e=>{
+    if(!dragAgent)return;
+    const r=stage.getBoundingClientRect(),p=document.getElementById('pool').getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width*100,y=(e.clientY-r.top)/r.height*100;
+    el.style.left=x+'%';el.style.top=y+'%';
+    const inPool=e.clientX>p.left&&e.clientX<p.right&&e.clientY>p.top&&e.clientY<p.bottom;
+    el.classList.toggle('on',inPool);
+  });
+  el.addEventListener('pointerup',e=>{
+    if(!dragAgent)return;
+    const p=document.getElementById('pool').getBoundingClientRect();
+    const inPool=e.clientX>p.left&&e.clientX<p.right&&e.clientY>p.top&&e.clientY<p.bottom;
+    if(inPool){
+      toast('协同任务已派发：'+AGENTS.find(x=>x.id===dragAgent).name+' → 融合池');
+      el.classList.add('on');
+      setTimeout(()=>el.classList.remove('on'),1200);
+    }
+    dragAgent=null;
+  });
+  return el;
+}
+function renderAgents(){agentsEl.innerHTML='';AGENTS.forEach(a=>agentsEl.appendChild(agentEl(a)));}
+renderAgents();
+
+/* ================= 轨迹面板 ================= */
+const thOrb=document.getElementById('thOrb'),thName=document.getElementById('thName'),
+  thRole=document.getElementById('thRole'),thState=document.getElementById('thState'),
+  tracesEl=document.getElementById('traces'),teamStat=document.getElementById('teamStat');
+const STATE_TXT={working:'工作中',idle:'待命',off:'离线'};
+function selectAgent(id){
+  selected=id;
+  const a=AGENTS.find(x=>x.id===id);
+  document.querySelectorAll('.agent').forEach(x=>x.classList.toggle('on',x.dataset.id===id&&!dragAgent));
+  thName.textContent=a.name;thRole.textContent=a.role;
+  thState.textContent=STATE_TXT[a.state];
+  thState.style.opacity=a.state==='off'?.5:1;
+  tracesEl.innerHTML='';
+  a.traces.forEach(tc=>{
+    const el=document.createElement('div');
+    el.className='tc';
+    el.innerHTML='<span class="tm">'+tc.t+'</span><div class="body"><div class="tl">'+tc.tool+'</div><div class="act">'+tc.act+'</div></div><span class="rs '+tc.r+'"></span>';
+    tracesEl.appendChild(el);
+  });
+  teamStat.innerHTML='';
+  AGENTS.forEach(x=>{
+    const s=document.createElement('div');s.className='ast';
+    s.innerHTML='<b>'+x.name+'</b><span>'+STATE_TXT[x.state]+' · '+x.amber+'%</span>';
+    teamStat.appendChild(s);
+  });
+}
+selectAgent('a1');
+
+/* ================= 时刻弧 ================= */
+function segAt(h){return SEGMENTS.find(s=>h>=s.h0&&h<s.h1)||SEGMENTS[3];}
+function stageX(){
+  const r=arc.getBoundingClientRect();
+  return r.width-48;
+}
+function applyHour(h){
+  hour=Math.max(0,Math.min(24,h));
+  const x=24+hour/24*stageX();
+  arcDot.style.left=x+'px';
+  const seg=segAt(hour);
+  const H=Math.floor(hour),M=Math.round((hour-H)*60);
+  if(M===60){hour=H+1;return applyHour(hour);}
+  const t=(H<10?'0':'')+H+':'+(M<10?'0':'')+M;
+  arcClock.textContent=t;
+  const on=AGENTS.filter(x=>x.state==='working').length;
+  arcPhase.innerHTML='阶段<b>'+seg.n+'</b> · '+on+' 液滴在线';
+  document.querySelectorAll('.agent').forEach(el=>{
+    const a=AGENTS.find(x=>x.id===el.dataset.id);
+    el.classList.toggle('pulse',a.state==='working');
+  });
+}
+function arcX(e){const r=arc.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left-24)/(r.width-48)));}
+arc.addEventListener('pointerdown',e=>{arc.setPointerCapture(e.pointerId);applyHour(arcX(e)*24);});
+arc.addEventListener('pointermove',e=>{if(e.buttons)applyHour(arcX(e)*24);});
+window.addEventListener('resize',()=>applyHour(hour));
+applyHour(10);
+
+/* ================= 命令面板 ================= */
+const cmdPalette=document.getElementById('cmdPalette'),cmdBtn=document.getElementById('cmdBtn'),
+  cmdInput=document.getElementById('cmdInput'),cmdList=document.getElementById('cmdList');
+const CMDS=[];
+AGENTS.forEach(a=>{
+  CMDS.push({q:a.name+' 聚焦',t:'聚焦 '+a.name,g:id=>{selectAgent(id);document.querySelector('[data-id="'+id+'"]').scrollIntoView({behavior:'smooth',block:'center'});}});
+  CMDS.push({q:a.name+' 轨迹',t:'查看 '+a.name+' 执行轨迹',g:id=>{selectAgent(id);}});
+  CMDS.push({q:a.name+' 任务',t:'给 '+a.name+' 派发任务',g:id=>{toast('任务已派发至 '+a.name);}});
+});
+function renderCmd(q){
+  cmdList.innerHTML='';
+  CMDS.filter(c=>!q||c.q.includes(q.toLowerCase())).forEach(c=>{
+    const el=document.createElement('div');
+    el.className='cmditem';
+    el.innerHTML='<span class="ci"></span><b>'+c.t+'</b><span>ENTER</span>';
+    el.addEventListener('click',()=>{closeCmd();const a=AGENTS.find(x=>c.q.startsWith(x.name));c.g(a.id);});
+    cmdList.appendChild(el);
+  });
+}
+function openCmd(){cmdPalette.classList.add('open');renderCmd('');setTimeout(()=>cmdInput.focus(),30);}
+function closeCmd(){cmdPalette.classList.remove('open');cmdInput.value='';}
+cmdBtn.addEventListener('click',openCmd);
+cmdInput.addEventListener('input',()=>renderCmd(cmdInput.value));
+cmdPalette.addEventListener('click',e=>{if(e.target===cmdPalette)closeCmd();});
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();cmdPalette.classList.contains('open')?closeCmd():openCmd();}
+  if(e.key==='Escape')closeCmd();
+});
+
+/* ================= Toast ================= */
+let _t=null;
+function toast(msg){
+  let el=document.querySelector('.lb-toast');
+  if(!el){el=document.createElement('div');el.className='lb-toast';el.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(16px);background:linear-gradient(180deg,rgba(50,40,28,.92),rgba(36,28,22,.95));color:var(--ink);font-size:12px;padding:9px 18px;border-radius:999px;border:1px solid var(--line);letter-spacing:.05em;opacity:0;pointer-events:none;transition:all .3s;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.5);backdrop-filter:blur(10px)';document.body.appendChild(el);}
+  el.textContent=msg;
+  el.style.opacity='1';el.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(_t);_t=setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(-50%) translateY(16px)';},1800);
+}
+
+selectAgent('a3');
+applyHour(18);
+</script>
+</body>
+</html>

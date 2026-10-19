@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>神经网络光球 · 6 秒无缝循环动画</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23C8C8CC' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23E87B5E'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --ink:#1D2B25; --ink-2:#4C5C54; --muted:#7A867E; --faint:#AAB4AC;
+  --brand:#0F6B5C; --brand-2:#0D5A4D; --brand-ink:#FFFFFF;
+  --accent:#A5823A;
+  --hair:rgba(29,43,37,.12); --hair-2:rgba(29,43,37,.22);
+  --paper:#F4F1EA; --surface:#FFFFFF; --surface-2:#FAF8F2;
+  --radius:14px; --radius-sm:9px;
+  --font:'Noto Sans SC',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+  --display:'Noto Serif SC','Songti SC',serif;
+  --tick:cubic-bezier(.34,1.4,.6,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--paper);color:var(--ink);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+::selection{background:var(--brand);color:#fff}
+button{font-family:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.2em;color:var(--brand);border:1px solid var(--hair);border-radius:999px;padding:5px 14px}
+
+/* 顶栏 */
+.topbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 90%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--hair)}
+.topbar .wrap{display:flex;align-items:center;gap:12px;height:58px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:16px}
+.logo .mark{width:26px;height:26px;border-radius:50%;border:2.5px solid var(--brand);position:relative;flex:none}
+.logo .mark::after{content:'';position:absolute;inset:0;margin:auto;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.tb-src{margin-left:auto;font-size:11.5px;color:var(--muted)}
+.tb-src b{color:var(--ink-2)}
+
+/* Hero */
+.hero{padding:44px 0 20px}
+.hero h1{font-family:var(--display);font-size:clamp(28px,4.6vw,42px);font-weight:900;line-height:1.22;margin:14px 0 10px}
+.hero h1 em{font-style:normal;color:var(--brand)}
+.hero .sub{max-width:640px;color:var(--ink-2);font-size:14.5px}
+
+/* 舞台 */
+.stage-wrap{border:1px solid var(--hair);border-radius:20px;background:var(--surface);padding:14px;margin-top:26px;overflow:hidden}
+.stage{position:relative;border-radius:14px;overflow:hidden;background:#131417;height:420px}
+@media (min-width:760px){.stage{height:520px}}
+.stage canvas{display:block;width:100%;height:100%}
+.stage .st-tag{position:absolute;top:14px;left:14px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;color:#C8C8CC;background:rgba(19,20,23,.55);border:1px solid rgba(200,200,204,.25);border-radius:999px;padding:5px 12px;backdrop-filter:blur(6px)}
+.stage .st-tag i{width:9px;height:9px;border-radius:50%;flex:none}
+.stage .st-loop{position:absolute;top:14px;right:14px;font-size:10.5px;color:#8A8B92;background:rgba(19,20,23,.55);border:1px solid rgba(200,200,204,.2);border-radius:999px;padding:5px 12px;backdrop-filter:blur(6px);letter-spacing:.06em}
+.stage .st-hint{position:absolute;bottom:14px;left:14px;font-size:10.5px;color:#8A8B92;letter-spacing:.04em}
+.stage .st-pulse{position:absolute;bottom:14px;right:14px;display:flex;align-items:center;gap:7px;font-size:10.5px;color:#8A8B92}
+.stage .st-pulse .dot{width:7px;height:7px;border-radius:50%;background:#5FB77A;animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* 控制条 */
+.ctrl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:13px 4px 2px}
+.ctrl .grp{display:flex;align-items:center;gap:7px;border:1px solid var(--hair);border-radius:999px;padding:5px 12px;font-size:12px;color:var(--ink-2);background:var(--surface-2)}
+.ctrl .grp b{font-weight:600;color:var(--ink);font-size:12px}
+.ctrl button{border:0;background:transparent;cursor:pointer;font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:5px;padding:0}
+.ctrl button:hover{color:var(--brand)}
+.ctrl .sw{width:15px;height:15px;border-radius:5px;flex:none}
+.ctrl input[type=range]{width:86px;accent-color:var(--brand)}
+.ctrl .ctrl-note{margin-left:auto;font-size:11px;color:var(--faint)}
+
+/* 款式选择按钮 */
+.fs{display:flex;gap:6px;flex-wrap:wrap}
+.fs button{border:1px solid var(--hair);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--muted);background:var(--surface);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px}
+.fs button i{width:10px;height:10px;border-radius:50%;flex:none}
+.fs button.on{border-color:var(--brand);color:var(--brand);background:color-mix(in srgb,var(--brand) 6%,var(--surface))}
+
+/* 参数三卡 */
+.meta{display:grid;grid-template-columns:1fr;gap:10px;margin-top:20px}
+@media (min-width:760px){.meta{grid-template-columns:repeat(3,1fr)}}
+.meta div{border:1px solid var(--hair);border-radius:var(--radius);background:var(--surface);padding:14px 16px}
+.meta b{font-family:var(--display);font-size:14px;display:block;margin-bottom:4px}
+.meta p{font-size:12px;color:var(--muted);line-height:1.6}
+
+/* 迷你面板 */
+.mini-sec{margin-top:44px}
+.sec-head{display:flex;align-items:flex-end;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.sec-head h2{font-family:var(--display);font-size:22px;font-weight:700}
+.sec-head p{color:var(--muted);font-size:12.5px;margin-left:auto;max-width:440px;text-align:right}
+.mini-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:820px){.mini-grid{grid-template-columns:repeat(3,1fr)}}
+.mini{border:1px solid var(--hair);border-radius:16px;overflow:hidden;background:var(--surface)}
+.mini .mi-top{display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid var(--hair)}
+.mini .mi-top b{font-size:12px;font-family:var(--display)}
+.mini .mi-top span{font-size:9.5px;color:var(--faint);margin-left:auto;letter-spacing:.08em}
+.mini .mi-body{display:flex;align-items:center;gap:10px;padding:12px 13px}
+.mini .mi-body .mi-card{flex:1;border:1px solid var(--hair);border-radius:10px;padding:10px 11px;background:var(--surface-2)}
+.mini .mi-card b{font-size:11.5px;display:block}
+.mini .mi-card p{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.5}
+.mini .mi-ball{width:52px;height:52px;border-radius:50%;flex:none;position:relative;overflow:hidden}
+.mini .mi-ball i{position:absolute;inset:0;border-radius:50%;animation:miniBreathe 6s ease-in-out infinite}
+/* 三版迷你面板 */
+.mi-a .mi-body{background:#EFEFE9}
+.mi-a .mi-card{background:#FAFAF6;box-shadow:0 1px 3px rgba(43,43,38,.08)}
+.mi-a .mi-ball i{background:radial-gradient(circle at 38% 32%,#fff,#D6D6CE 60%,#B5B5AA)}
+.mi-b .mi-body{background:#131417}
+.mi-b .mi-card{background:#1D1E22;border-color:#2F3036;box-shadow:0 4px 14px -6px rgba(0,0,0,.5)}
+.mi-b .mi-card b{color:#E8E8EA}
+.mi-b .mi-card p{color:#8A8B92}
+.mi-b .mi-ball i{background:radial-gradient(circle at 38% 32%,#F5F5F7,#C8C8CC 55%,#6E6E76);box-shadow:0 0 18px rgba(200,200,204,.55)}
+.mi-c .mi-body{background:#E4E1D8}
+.mi-c .mi-card{background:#E4E1D8;box-shadow:3px 3px 7px rgba(92,88,79,.28),-3px -3px 7px rgba(255,255,255,.85);border-color:rgba(255,255,255,.5)}
+.mi-c .mi-ball i{background:radial-gradient(circle at 38% 32%,#E87B5E,#B5482F 60%,#7E2F1E);box-shadow:0 0 20px rgba(181,72,47,.7)}
+@keyframes miniBreathe{0%,100%{transform:scale(.86);opacity:.75}50%{transform:scale(1.06);opacity:1}}
+
+footer{border-top:1px solid var(--hair);padding:26px 0 44px;margin-top:44px}
+footer p{font-size:11.5px;color:var(--muted);line-height:1.8}
+footer .src{font-size:10.5px;color:var(--faint);margin-top:6px}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶栏 ===== -->
+<header class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="mark"></span>神经网络光球</div>
+    <span class="tb-src">来自 <b>Xuan子</b>《AI做界面》 · 主题元素效果还原</span>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">主题元素 · 6 秒无缝循环动画</span>
+    <h1>神经网络的<em>呼吸感</em>，<br>收缩–舒展形成节奏</h1>
+    <p class="sub">视频中银黑版与新版拟物版的「主题元素」光球：用视频生成工具单独制作、静音后放主界面循环播放。本页用 Canvas 粒子系统把它做成可交互的实时版本——真无缝（相位连续，接头不跳）、可调参、两色可换。</p>
+  </div>
+</section>
+
+<!-- ===== 主舞台 ===== -->
+<section class="wrap">
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <canvas id="orb"></canvas>
+      <span class="st-tag" id="stageTag"><i id="stageDot"></i><span id="stageName">银黑版 · 银白大光球</span></span>
+      <span class="st-loop">6 秒无缝循环 · 周期相位连续</span>
+      <span class="st-hint">粒子按球面均匀分布 · 呼吸时径向脉冲 · 连接线随呼吸明灭</span>
+      <span class="st-pulse"><span class="dot"></span>LIVE</span>
+    </div>
+    <div class="ctrl">
+      <div class="fs" id="styleSel">
+        <button type="button" data-s="b" class="on"><i style="background:#C8C8CC"></i>银白光球</button>
+        <button type="button" data-s="c"><i style="background:#E87B5E"></i>红色光球</button>
+      </div>
+      <div class="grp"><button type="button" id="btnPause">暂停</button></div>
+      <div class="grp"><b>速度</b><input type="range" id="rSpeed" min="0.2" max="2" step="0.1" value="1"></div>
+      <div class="grp"><b>粒子</b><input type="range" id="rCount" min="300" max="1600" step="100" value="900"></div>
+      <div class="grp"><b>呼吸幅度</b><input type="range" id="rAmp" min="2" max="14" step="1" value="8"></div>
+      <div class="grp"><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="cLink" checked> 连接线</label></div>
+      <span class="ctrl-note">所有参数即时生效 · 周期保持 6 秒</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 参数说明 ===== -->
+<section class="wrap">
+  <div class="meta">
+    <div><b>6 秒无缝循环</b><p>动画周期恰好 6 秒；用时间相位（t mod 6000ms）驱动，首尾相位天然连续——接头处不会跳一下，适合常驻主界面循环播放。</p></div>
+    <div><b>收缩–舒展节奏</b><p>球体半径以正弦平滑在「收缩 0.92× ↔ 舒展 1.08×」间往复；粒子带个体相位偏移，形成从中心向外扩散的脉冲感，即「神经网络呼吸」。</p></div>
+    <div><b>神经网络表达</b><p>粒子按 Fibonacci 球面均匀分布，相邻粒子连线随呼吸同步明灭——收缩时连线收缩变亮、舒展时散开变淡，像神经元同步放电。</p></div>
+  </div>
+</section>
+
+<!-- ===== 迷你面板（放主界面循环） ===== -->
+<section class="wrap mini-sec">
+  <div class="sec-head">
+    <h2>放进主界面循环播放</h2>
+    <p>视频做法：光球单独制作、静音后放主界面循环。下方三版创作面板顶栏即演示「光球常驻主界面」的形态（迷你版；完整版见上方主舞台）。</p>
+  </div>
+  <div class="mini-grid">
+    <div class="mini mi-a">
+      <div class="mi-top"><b>创作面板 · 浅灰版</b><span>无光球 · 留白呼吸</span></div>
+      <div class="mi-body"><div class="mi-card"><b>今日概览</b><p>偏暖灰底 · 柔和明暗 · 舒展留白。主题元素不设光球，靠留白与明暗呼吸。</p></div><span class="mi-ball"><i></i></span></div>
+    </div>
+    <div class="mini mi-b">
+      <div class="mi-top"><b>创作面板 · 银黑版</b><span>银白大光球 · 6s 循环</span></div>
+      <div class="mi-body"><div class="mi-card"><b>今日概览</b><p>深色底 + 银灰层次 + 细线光感。光球是单独制作的主题元素，静音循环。</p></div><span class="mi-ball"><i></i></span></div>
+    </div>
+    <div class="mini mi-c">
+      <div class="mi-top"><b>创作面板 · 新拟物版</b><span>红色光球 · 6s 循环</span></div>
+      <div class="mi-body"><div class="mi-card"><b>今日概览</b><p>同调表面 + 明暗双层阴影。红色光球同为单独制作，常驻循环。</p></div><span class="mi-ball"><i></i></span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>本页还原抖音《AI做界面：先做功能vs先做UI？》中的「主题元素」效果：银黑版大光球、新拟物版红色光球——视频原片使用视频生成工具制作 6 秒无缝循环动画（神经网络呼吸感、收缩舒展形成节奏），本页为 Canvas 实时渲染的可交互还原（非视频原片）。</p>
+    <p class="src">来源 · 抖音 @Xuan子《AI做界面》逐字稿（已 fetch 查证）；迷你面板与光球为本页示意。</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const cv=document.getElementById('orb');
+  const stage=document.getElementById('stage');
+  const ctx=cv.getContext('2d');
+  let W=0,H=0,DPR=1;
+
+  /* 款式 */
+  const THEMES={
+    b:{name:'银黑版 · 银白大光球',bg:'#131417',bg2:'#0C0D10',part:'#F0F0F2',part2:'#8A8B92',link:'rgba(200,200,204,',glow:'255,255,255',dot:'#C8C8CC'},
+    c:{name:'新拟物版 · 红色光球',bg:'#E4E1D8',bg2:'#D9D5C9',part:'#E87B5E',part2:'#7E2F1E',link:'rgba(181,72,47,',glow:'255,138,110',dot:'#E87B5E'}
+  };
+  let theme='b';
+
+  /* 参数 */
+  const P={speed:1,count:900,amp:8,link:true,playing:true};
+  const CYCLE=6000; // 6 秒
+  const AMP=0.08;   // 基础幅度 8%（0.92~1.08），被 P.amp 微调
+
+  let pts=[];
+
+  /* Fibonacci 球面均匀分布 */
+  function makePts(n){
+    const out=[];
+    const ga=Math.PI*(3-Math.sqrt(5));
+    for(let i=0;i<n;i++){
+      const y=1-(i/(n-1))*2;
+      const r=Math.sqrt(1-y*y);
+      const th=ga*i;
+      out.push({
+        x:Math.cos(th)*r, y:y, z:Math.sin(th)*r,
+        ph:Math.random()*Math.PI*2,      // 个体相位偏移 → 脉冲波
+        size:0.7+Math.random()*1.1
+      });
+    }
+    return out;
+  }
+  pts=makePts(P.count);
+
+  function resize(){
+    DPR=Math.min(window.devicePixelRatio||1,2);
+    const rc=stage.getBoundingClientRect();
+    W=rc.width; H=rc.height;
+    cv.width=W*DPR; cv.height=H*DPR;
+    cv.style.width=W+'px'; cv.style.height=H+'px';
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  let last=performance.now();
+  function frame(now){
+    const dt=now-last; last=now;
+    if(P.playing){
+      const t=now*P.speed;
+      const phase=(t%CYCLE)/CYCLE;            // 0~1，相位连续 → 无缝
+      const cycle=Math.sin(phase*Math.PI*2);  // 正弦：-1~1
+      const amp=AMP*(0.3+P.amp/10);           // 幅度映射
+      const scale=1+cycle*amp;                // 收缩↔舒展
+      const linkGlow=0.5+0.5*cycle;           // 连线随呼吸明灭
+
+      const T=THEMES[theme];
+      ctx.clearRect(0,0,W,H);
+      // 背景径向
+      const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*0.75);
+      g.addColorStop(0,T.bg); g.addColorStop(1,T.bg2);
+      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+      const cx=W/2, cy=H/2;
+      const R=Math.min(W,H)*0.26;
+
+      // 中心光晕（随呼吸）
+      const glowR=R*1.9*(1+cycle*0.08);
+      const gg=ctx.createRadialGradient(cx,cy,0,cx,cy,glowR);
+      gg.addColorStop(0,'rgba('+T.glow+','+(0.16+0.08*cycle)+')');
+      gg.addColorStop(0.5,'rgba('+T.glow+',0.05)');
+      gg.addColorStop(1,'rgba('+T.glow+',0)');
+      ctx.fillStyle=gg; ctx.fillRect(0,0,W,H);
+
+      // 粒子
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.scale(scale,scale);
+      for(const p of pts){
+        // 个体呼吸：相位偏移产生径向脉冲波
+        const ps=1+cycle*amp*0.55*Math.sin(p.ph+cycle*2.2);
+        const rr=R*ps;
+        const px=p.x*rr, py=p.y*rr;
+        const b=0.35+0.65*(0.5+0.5*Math.sin(p.ph+cycle*2.2));
+        const size=p.size*Math.max(0.55,scale)*(0.85+0.3*b);
+        ctx.fillStyle=T.part;
+        ctx.globalAlpha=b;
+        ctx.beginPath();
+        ctx.arc(px,py,size,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // 连接线（呼吸同步明灭）
+      if(P.link){
+        const linkMax=R*0.42;
+        ctx.save();
+        ctx.translate(cx,cy);
+        ctx.scale(scale,scale);
+        ctx.lineWidth=1;
+        const n=pts.length;
+        const step=Math.max(1,Math.floor(n/340)); // 性能控制
+        for(let i=0;i<n;i+=step){
+          const a=pts[i];
+          for(let j=i+step;j<n;j+=step){
+            const dx=pts[j].x-a.x, dy=pts[j].y-a.y, dz=pts[j].z-a.z;
+            const d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+            if(d<linkMax){
+              const al=(1-d/linkMax)*(0.10+0.30*linkGlow);
+              ctx.strokeStyle=T.link+al+')';
+              ctx.beginPath();
+              ctx.moveTo(a.x*R, a.y*R);
+              ctx.lineTo(pts[j].x*R, pts[j].y*R);
+              ctx.stroke();
+            }
+          }
+        }
+        ctx.restore();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* 控制器 */
+  const $=id=>document.getElementById(id);
+  $('btnPause').addEventListener('click',()=>{
+    P.playing=!P.playing;
+    $('btnPause').textContent=P.playing?'暂停':'播放';
+  });
+  $('rSpeed').addEventListener('input',e=>{P.speed=+e.target.value});
+  $('rCount').addEventListener('change',e=>{P.count=+e.target.value;pts=makePts(P.count)});
+  $('rAmp').addEventListener('input',e=>{P.amp=+e.target.value});
+  $('cLink').addEventListener('change',e=>{P.link=e.target.checked});
+  document.getElementById('styleSel').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    theme=b.dataset.s;
+    document.querySelectorAll('#styleSel button').forEach(x=>x.classList.toggle('on',x===b));
+    const T=THEMES[theme];
+    stage.style.background=T.bg;
+    $('stageName').textContent=T.name;
+    $('stageDot').style.background=T.dot;
+  });
+})();
+</script>
+</body>
+</html>
+

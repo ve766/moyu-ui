@@ -1,0 +1,122 @@
+include:
+  - project: gitlab-org/frontend/untamper-my-lockfile
+    file: templates/merge_request_pipelines.yml
+  - project: gitlab-org/frontend/frontend-build-images
+    file: /semantic-release/.gitlab-ci-template.rules.yml
+  - component: ${CI_SERVER_FQDN}/gitlab-org/components/danger-review/danger-review@1.2.0
+
+.rules:only-mrs:
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+
+.rules:only-default-branch:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+.rules:exclude-fork-mrs:
+  rules:
+    - if: $CI_MERGE_REQUEST_SOURCE_PROJECT_ID && $CI_MERGE_REQUEST_PROJECT_ID != $CI_MERGE_REQUEST_SOURCE_PROJECT_ID
+      when: never
+
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+default:
+  tags:
+    - gitlab-org
+
+.node:
+  image: node:20.19.5-bookworm
+  cache: &global_cache
+    paths:
+      - node_modules/
+    policy: pull
+  before_script:
+    - yarn install --frozen-lockfile
+
+
+build-and-check:
+  extends:
+    - .node
+  stage: build
+  cache:
+    <<: *global_cache
+    policy: pull-push
+  script:
+    - bash ./build_scripts/build-svgs.sh
+    - echo "Starting Checks"
+    - bash ./build_scripts/svg-lint.sh
+    - yarn run lint
+  artifacts:
+    paths:
+      - dist
+
+.publish:
+  extends: .semantic-release
+  needs:
+    - build-and-check
+  stage: deploy
+  before_script:
+    - apk add --update-cache --no-cache bash
+
+publish-to-npm:
+  extends: .publish
+
+publish-to-npm-dry-run:
+  extends:
+    - .publish
+  rules:
+    # Semantic release checks the target repository for the current branch,
+    # which only exists on the source repository, causing a failure.
+    - !reference ['.rules:exclude-fork-mrs', rules]
+    - !reference ['.rules:only-mrs', rules]
+  script:
+    - semantic-release --branches "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" --dry-run --no-ci
+
+.pages:
+  extends:
+    - .node
+  stage: deploy
+  needs:
+    - build-and-check
+  script:
+    # Move static assets to svgpreviewer directory
+    - cp -r dist/ svgpreviewer/static/
+    # Build pages site
+    - yarn run generate
+    - apt-get update
+    - apt-get install -y brotli gzip
+    # See: https://docs.gitlab.com/ee/user/project/pages/introduction.html#serving-compressed-assets
+    - echo "Compressing assets..."
+    - find public -type f -regex '.*\.\(htm\|html\|txt\|text\|js\|json\|css\|svg\|xml\)$' -exec gzip --force --keep '{}' \;
+    - find public -type f -regex '.*\.\(htm\|html\|txt\|text\|js\|json\|css\|svg\|xml\)$' -exec brotli --force --keep '{}' \;
+    - ls -alth public/
+  environment:
+    url: '${CI_PAGES_URL}'
+  pages:
+    publish: public
+  artifacts:
+    paths:
+      - public
+
+pages:
+  extends:
+    - .pages
+    - .rules:only-default-branch
+  pages:
+    expire_in: never
+  environment:
+    name: 'pages'
+
+review-app:
+  extends:
+    - .pages
+    - .rules:only-mrs
+  pages:
+    path_prefix: '$CI_ENVIRONMENT_SLUG'
+    expire_in: '2 weeks'
+  environment:
+    name: 'review/mr-$CI_MERGE_REQUEST_IID'
+    auto_stop_in: '2 weeks'

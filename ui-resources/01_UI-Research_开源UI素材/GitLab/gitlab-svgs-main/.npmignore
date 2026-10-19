@@ -1,0 +1,30 @@
+# source files
+/doc/
+/illustrations/
+/sprite_icons/
+/file_icons/
+/file_icons_unused/
+
+# npm / yarn
+npm-debug.log
+yarn-error.log
+yarn.lock
+
+# Nuxt build & generate
+.nuxt/
+public/
+nuxt.config.js
+
+# Preview App
+svgpreviewer/
+
+# Build scripts
+build_scripts/
+
+# Dot files
+.gitlab/
+.eslintrc.yml
+.gitlab-ci.yml
+.prettierrc
+.prettierignore
+lefthook.yml

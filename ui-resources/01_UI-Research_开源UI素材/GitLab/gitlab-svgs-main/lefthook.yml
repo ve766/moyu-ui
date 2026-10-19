@@ -1,0 +1,11 @@
+# Lefthook guide:
+# https://github.com/Arkweid/lefthook/blob/master/docs/full_guide.md
+pre-commit:
+  parallel: true
+  commands:
+    eslint:
+      glob: '*.{js,vue}'
+      run: yarn run eslint --ext .js,.vue {staged_files}
+    prettier:
+      glob: '*.{js,vue}'
+      run: ./node_modules/.bin/prettier --check {staged_files}

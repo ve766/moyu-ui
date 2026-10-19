@@ -1,0 +1,130 @@
+/**
+ * EnergyCore shaders — prototype port of the techniques studied in
+ * samantha-ui SoulOrb (simplex displacement / fresnel / morph), rewritten for
+ * the AI Orb "青蓝科技" palette.
+ */
+
+export const vertexShader = /* glsl */ `
+uniform float uTime;
+uniform float uNoiseFrequency;
+uniform float uNoiseAmplitude;
+uniform float uAmplitude;
+uniform float uMorph; // 0.0 = blob, 1.0 = silk flow
+
+varying vec3 vNormal;
+varying vec3 vViewPosition;
+varying float vPattern;
+
+// Simplex noise — Ian McEwan / Ashima Arts (MIT), via stegu webgl-noise
+vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+float snoise(vec3 v) {
+  const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+  vec3 i  = floor(v + dot(v, C.yyy));
+  vec3 x0 = v - i + dot(i, C.xxx);
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+  i = mod289(i);
+  vec4 p = permute(permute(permute(
+        i.z + vec4(0.0, i1.z, i2.z, 1.0))
+      + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+      + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+  float n_ = 0.142857142857;
+  vec3 ns = n_ * D.wyz - D.xzx;
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+  vec4 x = x_ * ns.x + ns.yyyy;
+  vec4 y = y_ * ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
+  vec4 s0 = floor(b0) * 2.0 + 1.0;
+  vec4 s1 = floor(b1) * 2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+  vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+  vec3 p0 = vec3(a0.xy, h.x);
+  vec3 p1 = vec3(a0.zw, h.y);
+  vec3 p2 = vec3(a1.xy, h.z);
+  vec3 p3 = vec3(a1.zw, h.w);
+  vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+  p0 *= norm.x;
+  p1 *= norm.y;
+  p2 *= norm.z;
+  p3 *= norm.w;
+  vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+}
+
+void main() {
+  vNormal = normalMatrix * normal;
+  vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+  vViewPosition = viewPosition.xyz;
+
+  // Base surface pattern (passed to fragment for color mixing)
+  float pattern = snoise(position * uNoiseFrequency + uTime * 0.2);
+  vPattern = pattern;
+
+  // --- Blob: base noise + amplitude-driven multi-octave displacement ---
+  float baseDisplacement = pattern * uNoiseAmplitude;
+  float octave1 = snoise(position * 3.0 + uTime * 6.0);
+  float octave2 = snoise(position * 1.5 + uTime * 4.0);
+  float octave3 = snoise(position * 5.0 + uTime * 8.0);
+  float octave4 = snoise(position * 0.8 + uTime * 2.0);
+  float amplitudeDisplacement = uAmplitude * (
+    octave1 * 0.35 + octave2 * 0.25 + octave3 * 0.15 + octave4 * 0.25);
+  float blobDisplacement = baseDisplacement + amplitudeDisplacement;
+
+  // --- Silk: domain-warp flow + amplitude-reactive tips ---
+  vec3 warp = position + vec3(sin(uTime * 0.7), cos(uTime * 0.9), sin(uTime * 0.5)) * 0.4;
+  float flow = snoise(warp * 1.5);
+  float ripples = sin(position.y * 10.0 + uTime * 5.0 + flow * 2.0);
+  float tips = smoothstep(0.0, 0.8, flow);
+  float silkDisplacement = flow * 0.12 + uAmplitude * tips * 0.35 + uAmplitude * ripples * 0.02;
+
+  // --- Blend blob <-> silk by state ---
+  float displacement = mix(blobDisplacement, silkDisplacement, uMorph);
+  vec3 newPosition = position + normal * displacement;
+
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+}
+`
+
+export const fragmentShader = /* glsl */ `
+uniform vec3 uColorPrimary;
+uniform vec3 uColorSecondary;
+uniform float uEmissive;
+uniform float uFresnelPower;
+
+varying vec3 vNormal;
+varying vec3 vViewPosition;
+varying float vPattern;
+
+void main() {
+  vec3 normal = normalize(vNormal);
+  vec3 viewDir = normalize(-vViewPosition);
+
+  // Fresnel rim light
+  float fresnel = pow(1.0 - abs(dot(viewDir, normal)), uFresnelPower);
+
+  // Two-tone mix driven by the surface noise pattern
+  vec3 color = mix(uColorPrimary, uColorSecondary, vPattern * 0.5 + 0.5);
+  color = mix(color, uColorSecondary, fresnel);
+
+  // Emissive energy (rim + pattern)
+  vec3 emissive = uColorSecondary * uEmissive * (fresnel + vPattern * 0.2);
+
+  gl_FragColor = vec4(color + emissive, 1.0);
+}
+`

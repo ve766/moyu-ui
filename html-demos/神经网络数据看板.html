@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>神经网络数据看板 · Neural Creator Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%23E6E6EA' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='3.5' fill='%23C9A45C'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --dbg:#14161A; --dbg-2:#0D0F12; --dsurf:#1B1E24; --dsurf-2:#23262E;
+  --dline:rgba(230,230,234,.12); --dline-2:rgba(230,230,234,.22);
+  --dink:#E6E6EA; --dmut:#9A9DA6; --dfaint:#5E6169;
+  --dgold:#C9A45C; --dgold-2:#E5C98F;
+  --dglow:#E6E6EA; --dglow-rgb:230,230,234;
+  --font:'Noto Sans SC',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+  --display:'Noto Serif SC','Songti SC',serif;
+  --tick:cubic-bezier(.34,1.4,.6,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--dbg);color:var(--dink);font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased}
+::selection{background:var(--dgold);color:#14161A}
+button{font-family:inherit;color:inherit}
+svg{display:block}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* 顶栏 */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(13,15,18,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--dline)}
+.topbar .wrap{display:flex;align-items:center;gap:12px;height:58px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;font-family:var(--display)}
+.logo .orb-logo{width:24px;height:24px;border-radius:50%;border:2px solid var(--dglow);position:relative;flex:none;box-shadow:0 0 12px rgba(var(--dglow-rgb),.5)}
+.logo .orb-logo::after{content:'';position:absolute;inset:0;margin:auto;width:7px;height:7px;border-radius:50%;background:var(--dgold)}
+.tb-repo{margin-left:auto;font-size:11px;color:var(--dmut);border:1px solid var(--dline);border-radius:999px;padding:4px 12px;display:flex;align-items:center;gap:6px}
+.tb-repo b{color:var(--dgold);font-weight:600}
+
+/* Hero */
+.hero{padding:46px 0 16px}
+.hero .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;font-weight:700;letter-spacing:.22em;color:var(--dgold);border:1px solid var(--dline-2);border-radius:999px;padding:5px 14px}
+.hero h1{font-family:var(--display);font-size:clamp(27px,4.4vw,40px);font-weight:900;line-height:1.22;margin:14px 0 10px}
+.hero h1 em{font-style:normal;color:var(--dgold)}
+.hero .sub{max-width:680px;color:var(--dmut);font-size:14px}
+.hero .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.hero .chips span{font-size:11px;color:var(--dmut);border:1px solid var(--dline);border-radius:999px;padding:4px 12px}
+
+/* ===== 看板舞台 ===== */
+.board-wrap{border:1px solid var(--dline);border-radius:20px;background:linear-gradient(180deg,var(--dsurf),var(--dbg-2));overflow:hidden;margin-top:24px;position:relative}
+.board-top{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--dline);font-size:12px;color:var(--dmut)}
+.board-top .crumb{display:flex;align-items:center;gap:7px}
+.board-top .crumb button{border:0;background:transparent;color:var(--dmut);font-size:11.5px;cursor:pointer;padding:3px 7px;border-radius:6px}
+.board-top .crumb button:hover{color:var(--dink);background:var(--dsurf-2)}
+.board-top .crumb .sep{color:var(--dfaint)}
+.board-top .crumb .cur{color:var(--dgold);font-weight:600}
+.board-top .hint{margin-left:auto;font-size:10.5px;color:var(--dfaint);letter-spacing:.04em}
+/* 15 轮迭代回放条 */
+.iter-bar{border-bottom:1px solid var(--dline);padding:11px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(27,30,36,.55)}
+.iter-bar .ib-tag{font-size:9.5px;font-weight:700;letter-spacing:.14em;color:var(--dgold);border:1px solid rgba(201,164,92,.4);border-radius:999px;padding:3px 10px;flex:none;white-space:nowrap}
+.iter-track{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+.iter-track .it{border:1px solid var(--dline);background:transparent;color:var(--dmut);font-size:10.5px;border-radius:999px;padding:4px 11px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.iter-track .it:hover{color:var(--dink);border-color:var(--dline-2)}
+.iter-track .it.on{background:var(--dgold);color:#14161A;border-color:var(--dgold);font-weight:700}
+.iter-desc{flex-basis:100%;font-size:11px;color:var(--dmut);line-height:1.5}
+.iter-desc b{color:var(--dgold);font-weight:600}
+.iter-desc .itv{font-size:9px;color:var(--dfaint);margin-left:6px;letter-spacing:.04em}
+.board{position:relative;height:600px;overflow:hidden}
+@media (min-width:900px){.board{height:640px}}
+#netCanvas{position:absolute;inset:0;width:100%;height:100%}
+/* 光球层 */
+.orb-layer{position:absolute;left:50%;top:50%;width:0;height:0;transition:all .8s var(--tick)}
+.board.state-module .orb-layer{left:24%;top:50%}
+.orb-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:190px;height:190px;border-radius:50%;transition:all .8s var(--tick);pointer-events:auto;cursor:pointer}
+.board.state-module .orb-core{width:120px;height:120px}
+.orb-core canvas{position:absolute;inset:0;width:100%;height:100%}
+.orb-core .orb-tag{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:800;font-family:var(--display);color:rgba(230,230,234,.9);pointer-events:none;text-align:center;line-height:1.3;text-shadow:0 0 14px rgba(230,230,234,.35);letter-spacing:.06em}
+.orb-core .orb-tag small{display:block;font-size:8.5px;font-weight:500;letter-spacing:.18em;color:rgba(230,230,234,.55);margin-top:2px}
+.orb-label{position:absolute;left:50%;top:calc(50% + 115px);transform:translateX(-50%);font-size:10px;letter-spacing:.2em;color:var(--dfaint);transition:all .8s var(--tick);white-space:nowrap;text-align:center}
+.board.state-module .orb-label{top:calc(50% + 82px);font-size:9px}
+/* 水母层 */
+.jelly-layer{position:absolute;inset:0;transition:opacity .5s;pointer-events:none}
+.jelly{position:absolute;width:130px;height:150px;transform:translate(-50%,-50%);cursor:pointer;pointer-events:auto;transition:all .8s var(--tick)}
+.jelly svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 9px rgba(var(--dglow-rgb),.28))}
+.jelly .j-name{position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);font-size:10.5px;letter-spacing:.08em;color:var(--dmut);white-space:nowrap;transition:color .2s}
+.jelly:hover .j-name{color:var(--dgold)}
+.jelly .j-badge{position:absolute;top:-4px;right:-6px;font-size:8.5px;color:#14161A;background:var(--dgold);border-radius:999px;padding:1px 7px;font-weight:700;opacity:0;transition:opacity .3s}
+.jelly:hover .j-badge{opacity:1}
+.jelly .jelly-swim{animation:swim 7s ease-in-out infinite}
+@keyframes swim{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-9px) rotate(1.5deg)}}
+.board.state-module .jelly{pointer-events:auto}
+/* 触须与内容点层 */
+.tentacle-layer{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s}
+.board.state-module .tentacle-layer{opacity:1;pointer-events:auto}
+.tentacle-layer svg{position:absolute;inset:0;width:100%;height:100%}
+.ten{stroke:rgba(201,164,92,.4);stroke-width:1.2;fill:none;stroke-dasharray:400;stroke-dashoffset:400}
+.ten-sub{stroke:rgba(230,230,234,.22);stroke-width:.8;stroke-dasharray:260;stroke-dashoffset:260}
+.board.state-module .ten{animation:growTen .9s ease .15s both}
+.board.state-module .ten-sub{animation:growTen .9s ease .3s both}
+@keyframes growTen{to{stroke-dashoffset:0}}
+.piece{position:absolute;transform:translate(-50%,-50%);cursor:pointer;pointer-events:auto;text-align:center;opacity:0}
+.board.state-module .piece{animation:popIn .45s ease .5s both}
+@keyframes popIn{to{opacity:1}}
+@media (prefers-reduced-motion: reduce){
+  .board.state-module .ten{stroke-dashoffset:0;animation:none}
+  .board.state-module .piece{opacity:1;animation:none}
+}
+.piece .dot{width:11px;height:11px;border-radius:50%;margin:0 auto;background:var(--dgold);box-shadow:0 0 9px rgba(201,164,92,.7);transition:transform .2s}
+.piece:hover .dot{transform:scale(1.5)}
+.piece .pt{font-size:9.5px;color:var(--dmut);margin-top:5px;max-width:96px;line-height:1.35;transition:color .2s}
+.piece:hover .pt{color:var(--dink)}
+.piece.active .dot{background:#fff;box-shadow:0 0 12px rgba(255,255,255,.85)}
+.piece.active .pt{color:var(--dgold)}
+/* 分析栏 */
+.analysis{position:absolute;top:0;right:0;bottom:0;width:min(360px,86%);background:rgba(20,22,26,.92);backdrop-filter:blur(12px);border-left:1px solid var(--dline);transform:translateX(102%);transition:transform .45s var(--tick);z-index:8;overflow-y:auto;padding:18px}
+.analysis.open{transform:translateX(0)}
+.analysis h4{font-family:var(--display);font-size:16px;display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.analysis h4 .mini-orb{width:14px;height:14px;border-radius:50%;background:var(--dgold);box-shadow:0 0 10px rgba(201,164,92,.7);flex:none;animation:blink 2.4s ease-in-out infinite}
+.analysis .an-path{font-size:10px;color:var(--dfaint);margin-bottom:14px;letter-spacing:.04em}
+.an-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.an-metrics .m{border:1px solid var(--dline);border-radius:10px;padding:9px 8px;background:var(--dsurf-2)}
+.an-metrics .m b{display:block;font-size:14.5px;font-family:var(--display);color:var(--dgold)}
+.an-metrics .m span{font-size:8.5px;color:var(--dfaint);letter-spacing:.06em}
+.an-block{border:1px solid var(--dline);border-radius:11px;padding:12px 13px;margin-bottom:10px;background:var(--dsurf)}
+.an-block b{font-size:10.5px;letter-spacing:.1em;color:var(--dfaint);display:block;margin-bottom:8px;font-weight:600}
+.an-block .row{display:flex;justify-content:space-between;font-size:11.5px;padding:4px 0;border-bottom:1px dashed var(--dline)}
+.an-block .row:last-child{border-bottom:0}
+.an-block .row span:first-child{color:var(--dmut)}
+.an-block .row span:last-child{color:var(--dink);text-align:right}
+.an-block .tags{display:flex;gap:6px;flex-wrap:wrap}
+.an-block .tags span{font-size:10px;color:var(--dgold);border:1px solid rgba(201,164,92,.4);border-radius:999px;padding:2px 9px}
+.an-block .links{list-style:none}
+.an-block .links li{font-size:11.5px;color:var(--dmut);padding:5px 0;border-bottom:1px dashed var(--dline)}
+.an-block .links li:last-child{border-bottom:0}
+.an-block .links li b{display:inline;font-size:11px;color:var(--dgold);letter-spacing:0;margin:0 4px}
+.an-rate{position:relative;width:74px;height:74px;margin:0 auto 8px}
+.an-rate svg{width:74px;height:74px;transform:rotate(-90deg)}
+.an-rate .bg{stroke:var(--dline);stroke-width:7;fill:none}
+.an-rate .fg{stroke:var(--dgold);stroke-width:7;fill:none;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.an-rate .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--dink)}
+/* 问图谱 */
+.askbar{position:relative;z-index:9;border-top:1px solid var(--dline);padding:13px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(13,15,18,.6)}
+.askbar .qk{display:flex;gap:7px;flex-wrap:wrap}
+@media (max-width:640px){
+  .askbar .qk{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;width:100%}
+  .askbar .qk button{text-align:center}
+}
+.askbar .qk button{font-size:10.5px;color:var(--dmut);border:1px solid var(--dline);background:var(--dsurf-2);border-radius:999px;padding:4px 11px;cursor:pointer;transition:all .2s}
+.askbar .qk button:hover{color:var(--dgold);border-color:rgba(201,164,92,.5)}
+.askbar .qk button.on{background:var(--dgold);color:#14161A;border-color:var(--dgold)}
+.askbar input{flex:1;min-width:180px;background:var(--dsurf-2);border:1px solid var(--dline);border-radius:999px;color:var(--dink);font-size:12.5px;padding:9px 16px;outline:none}
+.askbar input:focus{border-color:rgba(201,164,92,.5)}
+.askbar input::placeholder{color:var(--dfaint)}
+.ask-ans{margin:0;border-top:1px solid var(--dline);background:rgba(27,30,36,.5);padding:0 16px;font-size:12px;color:var(--dmut);max-height:0;overflow:hidden;transition:max-height .35s ease}
+.ask-ans.show{max-height:130px;padding:12px 16px}
+.ask-ans b{color:var(--dgold)}
+.ask-ans .al{font-size:9.5px;color:var(--dfaint);margin-top:5px;letter-spacing:.06em}
+
+/* 方法卡 */
+.methods{display:grid;grid-template-columns:1fr;gap:10px;margin-top:22px}
+@media (min-width:760px){.methods{grid-template-columns:repeat(4,1fr)}}
+.meth{border:1px solid var(--dline);border-radius:14px;background:var(--dsurf);padding:15px 16px;position:relative}
+.meth .mn{position:absolute;top:12px;right:14px;font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--dfaint)}
+.meth b{font-size:13px;font-family:var(--display);display:block;margin-bottom:6px;color:var(--dgold)}
+.meth p{font-size:11.5px;color:var(--dmut);line-height:1.6}
+.meth .mv{font-size:9px;color:var(--dfaint);margin-top:8px;letter-spacing:.05em}
+
+/* 迭代记录 */
+.iter{border:1px solid var(--dline);border-radius:16px;background:var(--dsurf);padding:18px;margin-top:12px}
+.iter h4{font-family:var(--display);font-size:15px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.iter h4 .it-n{font-size:10px;font-weight:700;color:#14161A;background:var(--dgold);border-radius:999px;padding:2px 9px}
+.iter .it-sub{font-size:11px;color:var(--dfaint);margin-bottom:13px}
+.iter-list{display:grid;grid-template-columns:1fr;gap:6px}
+@media (min-width:760px){.iter-list{grid-template-columns:1fr 1fr}}
+.iter-list .it{border:1px solid var(--dline);border-radius:10px;padding:9px 12px;font-size:11.5px;color:var(--dmut);background:var(--dsurf-2);display:flex;gap:9px;align-items:baseline}
+.iter-list .it .r{flex:none;font-weight:800;color:var(--dgold);font-size:10px;letter-spacing:.06em}
+.iter-list .it .v{font-size:9px;color:var(--dfaint);margin-left:auto;flex:none;white-space:nowrap}
+
+footer{border-top:1px solid var(--dline);padding:24px 0 40px;margin-top:34px}
+footer p{font-size:11px;color:var(--dmut);line-height:1.8}
+footer .src{font-size:9.5px;color:var(--dfaint);margin-top:5px}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶栏 ===== -->
+<header class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="orb-logo"></span>神经网络数据看板</div>
+    <span class="tb-repo">仓库 · <b>luoluo-121/neural-creator-dashboard</b></span>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">NOT A MAGIC PROMPT · 15 轮对话迭代</span>
+    <h1>会发光、会展开的<em>神经网络看板</em></h1>
+    <p class="sub">把作品、笔记、选题和草稿，变成一张会呼吸的神经网络：中心是一颗光球，五只发光的水母代表五个模块；点开水母，触须像伞一样展开到每一篇内容；点开一篇，右侧弹出它的全部数据和双向链接。点看板上方的 15 ROUNDS 时间线，回看它怎么一轮一轮长成。</p>
+    <div class="chips">
+      <span>三层交互 · 光球 → 水母 → 数据</span>
+      <span>银灰配色 · 香槟金点缀</span>
+      <span>纯前端 · 示例数据虚构</span>
+      <span>15 轮对话 · 一个多小时</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 看板 ===== -->
+<section class="wrap">
+  <div class="board-wrap">
+    <div class="board-top">
+      <div class="crumb" id="crumb">
+        <button type="button" data-crumb="home" id="crumbHome">图谱</button>
+        <span class="sep" id="crumbSep1" style="display:none">/</span>
+        <button type="button" data-crumb="module" id="crumbModule" style="display:none"></button>
+        <span class="sep" id="crumbSep2" style="display:none">/</span>
+        <span class="cur" id="crumbPiece" style="display:none"></span>
+      </div>
+      <span class="hint">点光球回图谱 · 点水母展开 · 点内容看分析 · Esc 逐层返回</span>
+    </div>
+    <!-- 15 轮迭代回放 -->
+    <div class="iter-bar" id="iterBar">
+      <span class="ib-tag">15 ROUNDS</span>
+      <div class="iter-track" id="iterTrack"></div>
+      <div class="iter-desc" id="iterDesc"></div>
+    </div>
+    <div class="board" id="board">
+      <canvas id="netCanvas"></canvas>
+      <!-- 光球层 -->
+      <div class="orb-layer" id="orbLayer">
+        <div class="orb-core" id="orbCore" title="回图谱"><canvas id="orbCanvas"></canvas><span class="orb-tag">NEURAL<br><small>CREATOR CORE</small></span></div>
+        <div class="orb-label" id="orbLabel">大脑 · 第一层级</div>
+      </div>
+      <!-- 水母层 -->
+      <div class="jelly-layer" id="jellyLayer"></div>
+      <!-- 触须与内容点层 -->
+      <div class="tentacle-layer" id="tentLayer"></div>
+      <!-- 分析栏 -->
+      <aside class="analysis" id="analysis"></aside>
+    </div>
+    <div class="askbar">
+      <div class="qk" id="askQuick">
+        <button type="button" data-q="core">最核心的内容</button>
+        <button type="button" data-q="bidir">双向连接有哪些</button>
+        <button type="button" data-q="next">下一篇写什么</button>
+        <button type="button" data-q="missing">未创建的笔记</button>
+      </div>
+      <input id="askInput" placeholder="问你的图谱…（本地规则检索，不调用 AI）" aria-label="问图谱">
+    </div>
+    <p class="ask-ans" id="askAns"></p>
+  </div>
+</section>
+
+<!-- ===== 15 轮方法论 ===== -->
+<section class="wrap">
+  <div class="methods">
+    <div class="meth"><span class="mn">01</span><b>找一个起点</b><p>把原来的数据看板交给 AI，沿用已有的数据和视觉元素——光球、水母、数据都是现成的，改出来的东西才像你自己的。</p><div class="mv">[V] 视频逐字稿 · 仓库 README</div></div>
+    <div class="meth"><span class="mn">02</span><b>把交互说清楚</b><p>别只说「做得酷炫一点」。光球是大脑（第一层级），发光水母是模块（第二层级），具体数据才是第三层级——说得越具体、越有逻辑，AI 做得越精准。</p><div class="mv">[V] 视频逐字稿</div></div>
+    <div class="meth"><span class="mn">03</span><b>看一次效果，提一个意见</b><p>15 轮对话、一个多小时，每轮只解决一个具体问题：光球外围柔和、伞状展开、神经网络流光、右栏间距、页面压缩……一次改一件事，AI 越改越顺。</p><div class="mv">[V] 视频逐字稿</div></div>
+    <div class="meth"><span class="mn">04</span><b>让 AI 自己检查</b><p>每改完一轮，让 AI 打开浏览器实际点一遍、截图确认，没问题再进入下一轮。没有万能提示词，最有价值的是那一句句具体的修改意见和每次决策。</p><div class="mv">[V] 视频逐字稿</div></div>
+  </div>
+</section>
+
+<!-- ===== 迭代记录 ===== -->
+<section class="wrap">
+  <div class="iter">
+    <h4>15 轮对话 · 迭代记录摘录<span class="it-n">NOTES</span></h4>
+    <p class="it-sub">视频作者公开了 15 轮对话记录；以下摘录视频中明确点名的修改意见（[V]），完整逐条记录见原视频。</p>
+    <div class="iter-list">
+      <div class="it"><span class="r">R1</span>光球的外围做得再柔和一点，与深色背景更好地融合<span class="v">[V]</span></div>
+      <div class="it"><span class="r">R2</span>散开的状态要像伞打开一样<span class="v">[V]</span></div>
+      <div class="it"><span class="r">R3</span>增加神经网络的流光视觉<span class="v">[V]</span></div>
+      <div class="it"><span class="r">R4</span>右边的栏目离条目不能太远<span class="v">[V]</span></div>
+      <div class="it"><span class="r">R5</span>整个页面需要压缩一下<span class="v">[V]</span></div>
+      <div class="it"><span class="r">R6</span>让 AI 打开浏览器实际点一遍、截图确认再继续<span class="v">[V]</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>本页复现 luoluo-121/neural-creator-dashboard 的核心场景（仓库 README 已 fetch 查证）：中心光球、五只发光水母（作品库 / 概念网络 / 方法库 / 选题池 / 创作台）、触须扇形展开、右侧分析栏、底部问图谱。仓库素材光球与水母为即梦 AI 生成的 mp4；本页以 Canvas / SVG 实时渲染实现同款效果。示例数据全部虚构。</p>
+    <p class="src">来源 · 抖音 @Xuan子《代码开源｜不是万能提示词，而是15轮对话》（逐字稿已查证）+ GitHub luoluo-121/neural-creator-dashboard README（已查证）</p>
+  </div>
+</footer>
+
+<script>
+/* ================= 示例数据（虚构） ================= */
+const DATA=[
+  {id:'works',   name:'作品库', pieces:[
+    {id:'w1', title:'AI做界面·先做功能vs先做UI？', views:124000, likes:12480, saves:3860, shares:512, ctr:0.086, tags:['AI界面','方法论','创作面板'], out:['Opus5.5重构创作面板','4个按钮动效提示词'], in:['拆参考六维'], bidir:['创作面板·三版风格'], topic:'AI做界面', body:'功能先搭骨架，UI再定风格，接上内容和数据，边用边改——三版风格用同一套规则。'},
+    {id:'w2', title:'Opus5.5重构创作面板', views:86000, likes:7420, saves:2910, shares:340, ctr:0.072, tags:['Opus','创作面板','新拟物'], out:['AI做界面·先做功能vs先做UI？'], in:['白纸生长动画'], bidir:['创作面板·三版风格'], topic:'创作面板', body:'一张白纸里，长出一整个创作面板：工作台、作品库、创作台、选题池、日历。'},
+    {id:'w3', title:'4个按钮动效提示词', views:98000, likes:9180, saves:4720, shares:610, ctr:0.094, tags:['按钮','动效','提示词'], out:['AI做界面·先做功能vs先做UI？'], in:[], bidir:[], topic:'动效', body:'Like Burst、Submit Morph、Jelly Toggle、Hold to Confirm——4 个有手感的按钮动效。'}
+  ]},
+  {id:'concepts',name:'概念网络', pieces:[
+    {id:'c1', title:'AI做界面', views:0, likes:0, saves:0, shares:0, ctr:0, tags:['概念'], out:['w1','w2'], in:[], bidir:['w1','w2'], topic:'概念', body:'由 2 条以上内容共同提及形成的概念节点。'},
+    {id:'c2', title:'新拟物（Neumorphism）', views:0, likes:0, saves:0, shares:0, ctr:0, tags:['概念','风格'], out:['w2'], in:[], bidir:[], topic:'风格', body:'与底色接近的表面、圆润轮廓、明暗双层阴影做凸起凹陷。'},
+    {id:'c3', title:'拆参考六维', views:0, likes:0, saves:0, shares:0, ctr:0, tags:['概念','方法论'], out:['w1'], in:[], bidir:[], topic:'方法论', body:'配色 / 布局留白 / 字体层级 / 形状比例 / 材质光影 / 动效。'}
+  ]},
+  {id:'methods', name:'方法库', pieces:[
+    {id:'m1', title:'拆参考六维', views:0, likes:0, saves:0, shares:0, ctr:0, tags:['方法论','六维'], out:['w1'], in:['AI做界面'], bidir:[], topic:'方法论', body:'找喜欢的参考，让 AI 拆六个部分为什么好看，再结合自己的内容功能做调整。'},
+    {id:'m2', title:'改稿四问', views:0, likes:0, saves:0, shares:0, ctr:0, tags:['方法论','改稿'], out:['w1'], in:[], bidir:[], topic:'方法论', body:'在哪儿 / 什么问题 / 改成什么样 / 保留什么——一次只改一处。'},
+    {id:'m3', title:'15 轮对话工作流', views:0, likes:0, saves:0, shares:0, ctr:0, tags:['方法论','工作流'], out:['w1'], in:[], bidir:[], topic:'工作流', body:'找起点 → 讲清交互 → 看一次效果提一个意见 → 让 AI 自己检查。'}
+  ]},
+  {id:'ideas',   name:'选题池', pieces:[
+    {id:'i1', title:'新手怎么给 AI 说清楚"高级感"', views:0, likes:0, saves:0, shares:0, ctr:0, tags:['选题','高优先级'], out:[], in:[], bidir:[], topic:'选题', body:'来自评论区高频提问；优先级高，待排期。'},
+    {id:'i2', title:'创作面板还能怎么换风格？', views:0, likes:0, saves:0, shares:0, ctr:0, tags:['选题','中优先级'], out:[], in:[], bidir:[], topic:'选题', body:'待扩展：从三版风格出发，聊聊风格怎么长出来。'},
+    {id:'i3', title:'UI Skill 术语对照表', views:0, likes:0, saves:0, shares:0, ctr:0, tags:['选题','中优先级'], out:[], in:[], bidir:[], topic:'选题', body:'拆参考时发现用户卡在术语命名，可做一篇图文。'}
+  ]},
+  {id:'studio',  name:'创作台', pieces:[
+    {id:'s1', title:'创作面板·三版风格合集（草稿）', views:0, likes:0, saves:0, shares:0, ctr:0, tags:['草稿','创作面板'], out:['w1','w2'], in:[], bidir:[], topic:'创作面板', body:'编辑中：封面待换，来源选题池。'},
+    {id:'s2', title:'双链补全笔记（未创建）', views:0, likes:0, saves:0, shares:0, ctr:0, tags:['草稿','双链'], out:[], in:[], bidir:[], topic:'笔记', body:'正文里的 [[双链]] 找不到对应内容 → 显示为「未创建」。'}
+  ]}
+];
+const fmt=n=> n>=10000?(n/10000).toFixed(1)+'万':(n/1000).toFixed(1)+'k';
+const pct=x=> Math.round(x*100)+'%';
+
+/* ================= 15 轮迭代参数（按 Xuan子 方法：一轮一个具体意见） ================= */
+const ITER=[
+ {label:'STEP 0', name:'起点 · 原看板', desc:'把原来的数据看板交给 AI 当参考，沿用已有的数据和视觉元素——光球、水母都是现成的，改出来的东西才像你自己的。', v:'[V] 视频逐字稿', param:{glow:0,umbrella:0,stream:0,gap:1,dens:0}},
+ {label:'R1', name:'光球外围更柔和', desc:'光球的外围做得再柔和一点，与深色背景更好地融合。', v:'[V] 视频逐字稿', param:{glow:1,umbrella:0,stream:0,gap:1,dens:0}},
+ {label:'R2', name:'像伞打开一样', desc:'散开的状态要像伞打开一样——触须从单线变成伞骨，向该模块的每一篇内容扇形展开。', v:'[V] 视频逐字稿', param:{glow:1,umbrella:1,stream:0,gap:1,dens:0}},
+ {label:'R3', name:'神经网络流光', desc:'增加神经网络的流光视觉——光球轨道流光更亮，背景网络里出现移动的神经脉冲。', v:'[V] 视频逐字稿', param:{glow:1,umbrella:1,stream:1,gap:1,dens:0}},
+ {label:'R4', name:'右栏离条目不能太远', desc:'右边的栏目离条目不能太远——触须展开半径收拢，内容点更贴近水母。', v:'[V] 视频逐字稿', param:{glow:1,umbrella:1,stream:1,gap:0.74,dens:0}},
+ {label:'R5', name:'页面压缩', desc:'整个页面需要压缩一下——环绕半径与间距收紧，信息密度更高。', v:'[V] 视频逐字稿', param:{glow:1,umbrella:1,stream:1,gap:0.74,dens:1}},
+ {label:'R6', name:'AI 自检 · 终版', desc:'让 AI 打开浏览器实际点一遍、截图确认没问题再继续——看板达成终版。没有万能提示词，最有价值的是每一句具体意见和每次决策。', v:'[V] 视频逐字稿', param:{glow:1,umbrella:1,stream:1,gap:0.74,dens:1}}
+];
+let iter=0;let IP=ITER[0].param;
+
+/* ================= 光球 Canvas（呼吸 + 流光） ================= */
+(function(){
+  const cv=document.getElementById('orbCanvas');
+  const ctx=cv.getContext('2d');
+  let S=0;
+  function resize(){const r=cv.parentElement.getBoundingClientRect();S=cv.width=cv.height=Math.max(1,Math.round(Math.min(r.width,r.height)*2));}
+  resize();window.addEventListener('resize',resize);
+  const N=150,ga=Math.PI*(3-Math.sqrt(5));
+  const pts=[];
+  for(let i=0;i<N;i++){const y=1-(i/(N-1))*2,r=Math.sqrt(1-y*y),th=ga*i;pts.push({x:Math.cos(th)*r,y:y,z:Math.sin(th)*r,ph:Math.random()*6.28});}
+  // 流光轨道
+  const ORBITS=3,orbitPts=[];
+  for(let o=0;o<ORBITS;o++){orbitPts.push({tilt:(o-1)*0.6,sp:o%2?0.55:0.8,pos:Math.random()});}
+  function tick(t){
+    const ph=(t%6000)/6000,cyc=Math.sin(ph*6.283),sc=1+cyc*0.07;
+    const c=S/2,R=S*0.30;
+    ctx.clearRect(0,0,S,S);
+    // 辉光包裹：STEP0 朴素 → R1 起柔和
+    const g=ctx.createRadialGradient(c,c,R*0.4,c,c,R*1.8);
+    const ga=0.06+0.24*IP.glow;
+    g.addColorStop(0,'rgba(230,230,234,'+(ga+0.10*cyc)+')');g.addColorStop(1,'rgba(230,230,234,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,S,S);
+    // 流光轨道（神经信号）：R3 起随 stream 增强
+    const stB=0.20+0.80*IP.stream;
+    for(const o of orbitPts){
+      const a=o.pos+cyc*0.5;
+      for(let k=0;k<26;k++){
+        const ang=a+k*0.24;
+        const p=pts[k%pts.length];
+        // 绕 y 轴旋转 + 倾角
+        const ca=Math.cos(ang),sa=Math.sin(ang);
+        const x=(p.x*ca-p.z*sa), z=(p.x*sa+p.z*ca);
+        const y=p.y*Math.cos(o.tilt)+z*Math.sin(o.tilt);
+        const rr=R*1.06*sc;
+        const b=(0.10+0.30*(1-k/26))*Math.max(0.3,0.6+0.4*cyc)*stB;
+        ctx.fillStyle='rgba(229,201,143,'+b+')';
+        ctx.beginPath();ctx.arc(c+x*rr,c+y*rr,1.3,0,6.28);ctx.fill();
+      }
+    }
+    // 球面粒子
+    ctx.save();ctx.translate(c,c);ctx.scale(sc,sc);
+    const pb=0.34+0.20*IP.glow;
+    for(const p of pts){
+      const ps=1+cyc*0.07*0.6*Math.sin(p.ph+cyc*2.2),rr=R*ps;
+      const b=(pb*(0.5+0.5*Math.sin(p.ph+cyc*2.2)))+(0.10*IP.glow);
+      ctx.fillStyle='rgba(230,230,234,'+Math.min(1,b)+')';
+      ctx.beginPath();ctx.arc(p.x*rr,p.y*rr,1.6,0,6.28);ctx.fill();
+    }
+    ctx.restore();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+/* ================= 背景网络 Canvas ================= */
+(function(){
+  const cv=document.getElementById('netCanvas');
+  const ctx=cv.getContext('2d');
+  let W=0,H=0;
+  function resize(){W=cv.width=window.devicePixelRatio?Math.floor(cv.clientWidth*Math.min(devicePixelRatio,1.5)):cv.clientWidth;H=cv.height=Math.floor(cv.clientHeight*Math.min(devicePixelRatio,1.5));}
+  resize();window.addEventListener('resize',resize);
+  const N=70,nodes=[];let cxNow=0.5;
+  function seed(){nodes.length=0;for(let i=0;i<N;i++)nodes.push({x:Math.random(),y:Math.random(),vx:(Math.random()-0.5)*0.0006,vy:(Math.random()-0.5)*0.0006});}
+  seed();
+  function tick(){
+    ctx.clearRect(0,0,W,H);
+    const target=document.getElementById('board').classList.contains('state-module')?0.24:0.5;
+    cxNow+=(target-cxNow)*0.04;
+    const cx=W*cxNow,Hh=H*0.5;
+    for(const n of nodes){n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>1)n.vx*=-1;if(n.y<0||n.y>1)n.vy*=-1;}
+    for(let i=0;i<N;i++){
+      for(let j=i+1;j<N;j++){
+        const dx=(nodes[i].x-nodes[j].x)*W,dy=(nodes[i].y-nodes[j].y)*H;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<150){ctx.strokeStyle='rgba(230,230,234,'+(0.06*(1-d/150))+')';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(nodes[i].x*W,nodes[i].y*H);ctx.lineTo(nodes[j].x*W,nodes[j].y*H);ctx.stroke();}
+      }
+    }
+    // 光球中心热点（跟随 orb 位置，柔滑）
+    ctx.strokeStyle='rgba(201,164,92,0.10)';ctx.lineWidth=1;
+    for(const n of nodes){
+      const dx=(n.x*W-cx),dy=(n.y*H-Hh);const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<260&&d>40){ctx.beginPath();ctx.moveTo(cx,Hh);ctx.lineTo(n.x*W,n.y*H);ctx.stroke();}
+    }
+    // 神经脉冲（R3 起）：金色信号点沿热点连线向节点流动
+    if(IP.stream>0){
+      const t2=performance.now();
+      for(let s=0;s<4;s++){
+        const prog=((t2/1500)+s*0.25)%1;
+        const n=nodes[(s*23)%N];
+        const px=cx+(n.x*W-cx)*prog, py=Hh+(n.y*H-Hh)*prog;
+        const fade=Math.sin(prog*Math.PI);
+        ctx.fillStyle='rgba(229,201,143,'+(0.55*IP.stream*fade)+')';
+        ctx.beginPath();ctx.arc(px,py,1.7,0,6.28);ctx.fill();
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+/* ================= 水母 SVG ================= */
+function jellySVG(id,name,i){
+  const hue=i%2?230:222;
+  return '<svg viewBox="0 0 120 150">'
+    +'<defs><radialGradient id="jb'+id+'" cx="50%" cy="30%" r="75%"><stop offset="0%" stop-color="rgba(240,240,244,.95)"/><stop offset="100%" stop-color="rgba('+(hue-40)+','+(hue-34)+','+(hue-18)+',.25)"/></radialGradient></defs>'
+    +'<g class="jelly-swim">'
+    +'<path d="M22 56 Q60 6 98 56 Q60 38 22 56 Z" fill="url(#jb'+id+')" stroke="rgba(230,230,234,.5)" stroke-width="1"/>'
+    +'<path d="M30 52 Q24 84 26 122" stroke="rgba(230,230,234,.5)" stroke-width="1.6" fill="none"/>'
+    +'<path d="M46 50 Q42 88 44 128" stroke="rgba(230,230,234,.42)" stroke-width="1.4" fill="none"/>'
+    +'<path d="M60 48 Q58 86 60 132" stroke="rgba(230,230,234,.38)" stroke-width="1.2" fill="none"/>'
+    +'<path d="M74 50 Q78 88 76 128" stroke="rgba(230,230,234,.42)" stroke-width="1.4" fill="none"/>'
+    +'<path d="M90 52 Q96 84 94 122" stroke="rgba(230,230,234,.5)" stroke-width="1.6" fill="none"/>'
+    +'<circle cx="60" cy="34" r="10" fill="rgba(201,164,92,.9)"/></g></svg>';
+}
+
+/* ================= 状态机 ================= */
+const board=document.getElementById('board');
+const orbLayer=document.getElementById('orbLayer');
+const jellyLayer=document.getElementById('jellyLayer');
+const tentLayer=document.getElementById('tentLayer');
+const analysis=document.getElementById('analysis');
+const crumbHome=document.getElementById('crumbHome'),crumbModule=document.getElementById('crumbModule'),crumbPiece=document.getElementById('crumbPiece');
+const sep1=document.getElementById('crumbSep1'),sep2=document.getElementById('crumbSep2');
+const crumb=document.getElementById('crumb');
+let state='home',selModule=null,selPiece=null;
+let bw=0,bh=0,R=0;
+function measure(){bw=board.clientWidth;bh=board.clientHeight;R=Math.min(bw,bh)*0.30;}
+window.addEventListener('resize',()=>{measure();if(state==='home')layoutHome();else if(state==='module')layoutModule();});
+measure();
+
+/* 生成水母 */
+DATA.forEach((m,i)=>{
+  const d=document.createElement('div');
+  d.className='jelly';d.id='jelly-'+m.id;
+  d.dataset.id=m.id;
+  d.innerHTML=jellySVG(m.id,m.name,i)+'<span class="j-name">'+m.name+'</span><span class="j-badge">'+m.pieces.length+'</span>';
+  jellyLayer.appendChild(d);
+  d.addEventListener('click',e=>{e.stopPropagation();openModule(m.id);});
+});
+document.getElementById('orbCore').addEventListener('click',()=>{goHome();});
+
+function layoutHome(){
+  const orbs=document.querySelectorAll('.jelly');
+  const cx=bw/2,cy=bh/2,rr=R*0.97*(IP.dens?0.86:1);
+  orbs.forEach((el,i)=>{
+    const a=-Math.PI/2+i*(Math.PI*2/DATA.length);
+    const px=cx+Math.cos(a)*rr, py=cy+Math.sin(a)*rr;
+    el.style.left=px+'px';el.style.top=py+'px';
+    el.style.transform='translate(-50%,-50%) scale(1)';
+    el.style.opacity='1';
+    const svg=el.querySelector('.jelly-swim');
+    if(svg)svg.style.animationPlayState='running';
+  });
+}
+function layoutModule(){
+  const orbs=document.querySelectorAll('.jelly');
+  const cx=bw*0.24,cy=bh/2,rr=R*0.42*(IP.dens?0.92:1);
+  orbs.forEach((el,i)=>{
+    const m=DATA[i];
+    const isSel=m.id===selModule;
+    const a=-Math.PI/2+i*(Math.PI*2/DATA.length)*0.6;
+    const px=cx+Math.cos(a)*rr, py=cy+Math.sin(a)*rr*0.9;
+    el.style.left=px+'px';el.style.top=py+'px';
+    el.style.transform='translate(-50%,-50%) scale('+(isSel?1.18:0.78)+')';
+    el.style.opacity=isSel?'1':'0.55';
+    const svg=el.querySelector('.jelly-swim');
+    if(svg)svg.style.animationPlayState=isSel?'running':'paused';
+  });
+}
+function openModule(id){
+  selModule=id;state='module';
+  board.classList.add('state-module');
+  layoutModule();
+  renderTentacles(id);
+  updateCrumb();
+}
+function goHome(){
+  state='home';selModule=null;selPiece=null;
+  board.classList.remove('state-module');
+  analysis.classList.remove('open');
+  tentLayer.innerHTML='';tentLayer.style.pointerEvents='none';
+  layoutHome();
+  updateCrumb();
+}
+
+/* 触须 + 内容点 */
+function renderTentacles(mid){
+  const m=DATA.find(x=>x.id===mid);
+  const selEl=document.getElementById('jelly-'+mid);
+  const sx=parseFloat(selEl.style.left),sy=parseFloat(selEl.style.top);
+  const n=m.pieces.length;
+  const baseSpread=Math.min(70,26*n);
+  const spread=baseSpread*(IP.umbrella?1.55:1);           // R2 伞状展开更开
+  const rad=R*0.55*IP.gap*(IP.dens?0.94:1);                // R4 右栏贴近 · R5 压缩
+  let paths='';
+  const pts=[];
+  m.pieces.forEach((p,i)=>{
+    const ang=(-Math.PI/2 - spread*Math.PI/180/2 + (spread*Math.PI/180)*(n===1?0.5:i/(n-1||1)));
+    const px=sx+Math.cos(ang)*rad, py=sy+Math.sin(ang)*rad;
+    pts.push({px,py,p});
+    const mx=(sx+px)/2, my=(sy+py)/2 + Math.abs(px-sx)*0.16*(px>sx?-1:1);
+    paths+='<path class="ten" d="M'+sx+' '+sy+' Q'+mx+' '+my+' '+px+' '+py+'"/>';
+    if(IP.umbrella){  // 伞骨：主触须两侧各一条子触须
+      for(const off of [-0.20,0.20]){
+        const ax=ang+off;
+        const ex=sx+Math.cos(ax)*rad*0.62, ey=sy+Math.sin(ax)*rad*0.62;
+        const mx2=(sx+ex)/2, my2=(sy+ey)/2 + Math.abs(sx-ex)*0.20*(ex>sx?-1:1);
+        paths+='<path class="ten ten-sub" d="M'+sx+' '+sy+' Q'+mx2+' '+my2+' '+ex+' '+ey+'"/>';
+      }
+    }
+  });
+  tentLayer.innerHTML='<svg>'+paths+'</svg>';
+  pts.forEach((q,i)=>{
+    const el=document.createElement('div');
+    el.className='piece';el.id='piece-'+q.p.id;
+    el.style.left=q.px+'px';el.style.top=q.py+'px';
+    el.innerHTML='<div class="dot"></div><div class="pt">'+q.p.title+'</div>';
+    tentLayer.appendChild(el);
+    el.addEventListener('click',e=>{e.stopPropagation();openPiece(q.p,mid);});
+  });
+}
+function openPiece(p,mid){
+  selPiece=p.id;state='piece';
+  document.querySelectorAll('.piece').forEach(x=>x.classList.remove('active'));
+  const el=document.getElementById('piece-'+p.id);if(el)el.classList.add('active');
+  renderAnalysis(p);
+  analysis.classList.add('open');
+  updateCrumb();
+}
+
+/* 分析栏 */
+function renderAnalysis(p){
+  const circ=2*Math.PI*26;
+  const html='<h4><span class="mini-orb"></span>'+p.title+'</h4>'
+    +'<div class="an-path">'+(p.topic||'内容')+' / '+p.id+'</div>'
+    +'<div class="an-metrics">'
+    +'<div class="m"><b>'+(p.views?fmt(p.views):'—')+'</b><span>观看</span></div>'
+    +'<div class="m"><b>'+(p.likes?fmt(p.likes):'—')+'</b><span>点赞</span></div>'
+    +'<div class="m"><b>'+(p.saves?fmt(p.saves):'—')+'</b><span>收藏</span></div>'
+    +'</div>'
+    +'<div class="an-block"><b>收藏率 / 指标</b>'
+    +'<div class="an-rate"><svg viewBox="0 0 60 60"><circle class="bg" cx="30" cy="30" r="26"/><circle class="fg" cx="30" cy="30" r="26" stroke-dasharray="'+circ+'" stroke-dashoffset="'+circ*(1-(p.ctr||0))+'"/></svg><span class="num">'+pct(p.ctr||0)+'</span></div>'
+    +'<div class="row"><span>分享</span><span>'+(p.shares?fmt(p.shares):'—')+'</span></div>'
+    +'<div class="row"><span>正文长度</span><span>'+(p.body||'').length+' 字</span></div>'
+    +'</div>'
+    +'<div class="an-block"><b>话题</b><div class="tags">'+(p.tags||[]).map(t=>'<span>'+t+'</span>').join('')||'<span>—</span>'+'</div></div>'
+    +'<div class="an-block"><b>出链 / 反链 / 双向</b>'
+    +'<div class="row"><span>出链</span><span>'+(p.out||[]).length+' 条</span></div>'
+    +'<div class="row"><span>反链</span><span>'+(p.in||[]).length+' 条</span></div>'
+    +'<div class="row"><span>双向共振</span><span>'+(p.bidir||[]).length+' 条</span></div>'
+    +'<ul class="links">'+['out','in','bidir'].flatMap(k=>(p[k]||[]).map(l=>'<li>'+l+'<b>'+k+'</b></li>')).join('')||'<li>—</li>'+'</ul>'
+    +'</div>'
+    +'<div class="an-block"><b>二度关联</b><div class="row"><span>相关话题</span><span>'+(p.topic||'—')+'</span></div><div class="row"><span>所在模块</span><span>'+DATA.find(m=>m.pieces.some(x=>x.id===p.id)).name+'</span></div></div>';
+  analysis.innerHTML=html;
+}
+
+/* 面包屑 */
+function updateCrumb(){
+  crumbModule.style.display=state==='home'?'none':'inline-block';
+  crumbPiece.style.display=state==='piece'?'inline-block':'none';
+  sep1.style.display=state==='home'?'none':'inline';
+  sep2.style.display=state==='piece'?'inline':'none';
+  if(state==='module'){crumbModule.textContent=DATA.find(m=>m.id===selModule).name;}
+  if(state==='piece'){const m=DATA.find(m=>m.pieces.some(x=>x.id===selPiece));crumbModule.textContent=m.name;crumbPiece.textContent=m.pieces.find(x=>x.id===selPiece).title;}
+}
+crumb.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const to=b.dataset.crumb;
+  if(to==='home')goHome();
+  else if(to==='module'){state='module';selPiece=null;analysis.classList.remove('open');document.querySelectorAll('.piece').forEach(x=>x.classList.remove('active'));updateCrumb();}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if(state==='piece'){state='module';selPiece=null;analysis.classList.remove('open');document.querySelectorAll('.piece').forEach(x=>x.classList.remove('active'));updateCrumb();}
+  else if(state==='module'){goHome();}
+});
+layoutHome();
+
+/* ================= 15 轮迭代回放 ================= */
+const iterTrack=document.getElementById('iterTrack'),iterDesc=document.getElementById('iterDesc');
+ITER.forEach((it,i)=>{
+  const b=document.createElement('button');
+  b.type='button';b.className='it';b.dataset.i=i;
+  b.textContent=it.label+' '+it.name;
+  iterTrack.appendChild(b);
+});
+function applyIter(i){
+  iter=i;IP=ITER[i].param;
+  document.querySelectorAll('#iterTrack .it').forEach(x=>x.classList.toggle('on',+x.dataset.i===i));
+  const it=ITER[i];
+  iterDesc.innerHTML='<b>'+it.name+'</b>　'+it.desc+'<span class="itv">'+it.v+'</span>';
+  if(state==='module'){layoutModule();renderTentacles(selModule);}
+  else if(state==='home'){layoutHome();}
+}
+iterTrack.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  applyIter(+b.dataset.i);
+});
+applyIter(0);
+
+/* ================= 问图谱（本地规则检索） ================= */
+const askAns=document.getElementById('askAns');
+function ask(q){
+  let txt='';
+  if(q==='core'){
+    const all=DATA.flatMap(m=>m.pieces).filter(p=>p.views>0).sort((a,b)=>b.views-a.views)[0];
+    txt='图谱中最核心的内容是 <b>《'+all.title+'》</b>：'+fmt(all.views)+' 观看、'+fmt(all.likes)+' 点赞、收藏率 '+pct(all.ctr)+'。';
+  }else if(q==='bidir'){
+    const bs=DATA.flatMap(m=>m.pieces).filter(p=>(p.bidir||[]).length>0);
+    txt='双向共振 <b>'+bs.length+' 条</b>：'+bs.map(p=>'《'+p.title+'》').join('、')+'。';
+  }else if(q==='next'){
+    const nxt=DATA.find(m=>m.id==='ideas').pieces[0];
+    txt='建议下一篇写 <b>《'+nxt.title+'》</b>：高优先级选题，来源评论区高频提问，可转创作台草稿。';
+  }else if(q==='missing'){
+    const mk=DATA.find(m=>m.id==='studio').pieces.find(p=>p.id==='s2');
+    txt='发现 <b>1 条未创建</b>：笔记正文中的 <b>[[双链]]</b> 找不到对应内容，会显示为「未创建」。';
+  }else{
+    const hit=DATA.flatMap(m=>m.pieces).filter(p=>p.title.toLowerCase().includes(q.toLowerCase()));
+    txt=hit.length?'按标题检索到 <b>'+hit.length+' 条</b>：'+hit.map(p=>'《'+p.title+'》').join('、')+'。':'图谱中没有匹配「'+q+'」的内容（本地规则检索，不调用 AI）。';
+  }
+  askAns.innerHTML=txt+'<div class="al">本地规则检索 · 不调用 AI · 与仓库「问你的图谱」一致</div>';
+  askAns.classList.add('show');
+}
+document.getElementById('askQuick').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#askQuick button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  ask(b.dataset.q);
+});
+document.getElementById('askInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.value.trim()){ask(e.target.value.trim());}
+});
+</script>
+</body>
+</html>
+
+

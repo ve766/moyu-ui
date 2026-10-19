@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>墨玉 UI · 代码工具箱</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230F6B5C'/%3E%3Cpath d='M16 7v18M10 11l-4 6 4 6M22 11l4 6-4 6' stroke='%23F3EBDC' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap">
+<style>
+/* ============================================================
+   墨玉 UI · 代码工具箱 —— 基于墨玉设计系统令牌
+   ============================================================ */
+:root{
+  --paper:#F4F1EA; --paper-2:#ECE7DC; --surface:#FCFBF7; --surface-2:#FFFFFF;
+  --ink:#1B2722; --ink-2:#3C4A43; --muted:#6B756E; --faint:#99A29B;
+  --hair:rgba(27,39,34,.10); --hair-strong:rgba(27,39,34,.18);
+  --brand:#0F6B5C; --brand-strong:#0B5448; --brand-soft:#E2EFEA; --brand-line:rgba(15,107,92,.28);
+  --accent:#A5823A; --accent-soft:#F4ECDB;
+  --ok:#2E7D4F; --warn:#B07A1D; --danger:#C05A45; --info:#4A6FA5;
+  --ok-soft:#E5F1E9; --warn-soft:#F7EDD8; --danger-soft:#F8E9E4; --info-soft:#E7EDF5;
+  --sh1:0 1px 2px rgba(27,39,34,.05),0 3px 10px -2px rgba(27,39,34,.08);
+  --sh2:0 2px 6px rgba(27,39,34,.06),0 12px 30px -8px rgba(27,39,34,.16);
+  --r-s:6px; --r-m:10px; --r-l:14px;
+  --t-spring:320ms; --curve-spring:cubic-bezier(.34,1.3,.42,1);
+  --font:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Consolas,"Courier New",monospace;
+}
+[data-theme="dark"]{
+  --paper:#131B17; --paper-2:#0F1512; --surface:#1B2621; --surface-2:#22302A;
+  --ink:#ECE9E1; --ink-2:#C6CDC6; --muted:#9AA49D; --faint:#6E7A72;
+  --hair:rgba(236,233,225,.12); --hair-strong:rgba(236,233,225,.22);
+  --brand:#3FAF99; --brand-strong:#57C0AA; --brand-soft:#16322B; --brand-line:rgba(63,175,153,.4);
+  --accent:#C9A45C; --accent-soft:#332B17;
+  --ok:#5CB87C; --warn:#D2A24A; --danger:#D97B63; --info:#7C9FD1;
+  --ok-soft:#16301F; --warn-soft:#362B12; --danger-soft:#3A2118; --info-soft:#1D2940;
+  --sh1:0 1px 2px rgba(0,0,0,.3),0 3px 10px -2px rgba(0,0,0,.4);
+  --sh2:0 2px 6px rgba(0,0,0,.35),0 12px 30px -8px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--paper);color:var(--ink);line-height:1.6;font-size:14px;transition:background .3s,color .3s}
+button{font-family:inherit}
+code,.mono{font-family:var(--mono)}
+::selection{background:var(--brand);color:#fff}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* 顶栏 */
+.topnav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--hair)}
+.topnav .inner{max-width:1280px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;gap:10px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
+.logo svg{width:24px;height:24px}
+.logo small{color:var(--faint);font-weight:500;font-size:11.5px}
+.sp{flex:1}
+.theme-btn{border:1px solid var(--hair-strong);background:var(--surface);color:var(--muted);border-radius:10px;padding:0 12px;height:34px;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px}
+.theme-btn:hover{color:var(--ink)}
+.theme-btn svg{width:15px;height:15px}
+
+/* 布局 */
+.layout{max-width:1280px;margin:0 auto;padding:16px;display:grid;grid-template-columns:230px 1fr;gap:16px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:1fr}}
+.side{background:var(--surface);border:1px solid var(--hair);border-radius:var(--r-l);padding:12px;position:sticky;top:72px}
+.side h3{font-size:12px;color:var(--faint);font-weight:600;letter-spacing:.06em;margin:8px 10px 6px}
+.side h3:first-child{margin-top:2px}
+.cat-btn{display:flex;align-items:center;gap:9px;width:100%;padding:9px 10px;border-radius:9px;border:none;background:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;text-align:left;margin-bottom:2px}
+.cat-btn svg{width:16px;height:16px;flex:none}
+.cat-btn:hover{background:var(--paper-2);color:var(--ink)}
+.cat-btn.on{background:var(--brand);color:#fff}
+.cat-btn .n{margin-left:auto;font-size:11px;opacity:.75;font-family:var(--mono)}
+.item-list{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.item-btn{padding:7px 12px;border-radius:8px;border:none;background:none;color:var(--muted);font-size:12.5px;cursor:pointer;text-align:left}
+.item-btn:hover{background:var(--paper-2);color:var(--ink)}
+.item-btn.on{background:var(--brand-soft);color:var(--brand-strong);font-weight:600}
+
+.main{min-width:0;display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--surface);border:1px solid var(--hair);border-radius:var(--r-l);overflow:hidden}
+.panel-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--hair);flex-wrap:wrap}
+.panel-head h2{font-size:15px;font-weight:700}
+.panel-head .desc{font-size:12px;color:var(--muted);flex-basis:100%}
+.panel-head .tag{margin-left:auto;font-size:11px;color:var(--faint);font-family:var(--mono)}
+.preview{height:300px;background:var(--paper-2)}
+.preview iframe{width:100%;height:100%;border:none;display:block;background:transparent}
+.code-head{display:flex;align-items:center;gap:6px;padding:10px 16px;border-bottom:1px solid var(--hair);flex-wrap:wrap;background:var(--paper-2)}
+.code-tab{border:none;background:none;padding:6px 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.code-tab.on{background:var(--surface-2);color:var(--ink);box-shadow:var(--sh1)}
+.code-tab.on .ln{color:var(--brand);font-family:var(--mono);font-size:11px}
+.copy-btn{margin-left:auto;border:1px solid var(--hair-strong);background:var(--surface-2);color:var(--ink-2);border-radius:9px;height:32px;padding:0 13px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.copy-btn:hover{border-color:var(--brand);color:var(--brand)}
+.copy-btn svg{width:14px;height:14px}
+.code-box{background:#0F1512;color:#DDE3DD;font-family:var(--mono);font-size:12.5px;line-height:1.55;padding:16px;overflow:auto;max-height:420px;white-space:pre;tab-size:2}
+.code-box::-webkit-scrollbar{width:8px;height:8px}
+.code-box::-webkit-scrollbar-thumb{background:#2A352F;border-radius:4px}
+.k{color:#7FBFA9}.s{color:#C9B98A}.c{color:#5B665F;font-style:italic}.n{color:#C9A45C}
+.foot{max-width:1280px;margin:0 auto;padding:0 16px 44px;font-size:12px;color:var(--faint);line-height:1.8}
+.foot b{color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);background:var(--ink);color:var(--paper);font-size:13px;padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:all .26s var(--curve-spring);z-index:99;box-shadow:var(--sh2)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.empty{padding:40px;text-align:center;color:var(--faint);font-size:13px}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-logo" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M7 7l-3 5 3 5M17 7l3 5-3 5" stroke="#F3EBDC"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></symbol>
+    <symbol id="i-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 4v6a3 3 0 0 1-6 0V4"/><path d="M12 10a3 3 0 0 0 6 0V4"/><path d="M3 11a9 9 0 0 0 18 0M12 20v-2"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 19V5.5M4 19h16M8 19v-6M13 19V8M18 19v-9"/></symbol>
+  </defs>
+</svg>
+
+<div class="topnav" id="top">
+  <div class="inner">
+    <a class="logo" href="#top" style="text-decoration:none"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="var(--brand)"/><use href="#i-logo" xlink:href="#i-logo" width="18" height="18" x="7" y="7"/></svg>墨玉 UI <small>代码工具箱 · Code Toolkit</small></a>
+    <span class="sp"></span>
+    <button class="theme-btn" id="themeBtn" type="button"><svg><use href="#i-moon" xlink:href="#i-moon"/></svg><span id="themeLb">暗色</span></button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="side" id="side"></aside>
+  <main class="main">
+    <div class="panel" id="viewPanel">
+      <div class="panel-head">
+        <h2 id="vTitle">选择一个组件</h2>
+        <span class="tag" id="vTag"></span>
+        <div class="desc" id="vDesc">从左侧选择条目，右侧会给出可运行的预览和可直接复制的代码。</div>
+      </div>
+      <div class="preview"><iframe id="vFrame" title="组件预览"></iframe></div>
+      <div class="code-head">
+        <button class="code-tab on" id="tabHtml" type="button">HTML <span class="ln" id="lnHtml"></span></button>
+        <button class="code-tab" id="tabCss" type="button">CSS <span class="ln" id="lnCss"></span></button>
+        <button class="code-tab" id="tabJs" type="button">JS <span class="ln" id="lnJs"></span></button>
+        <button class="copy-btn" id="copyBtn" type="button"><svg><use href="#i-copy" xlink:href="#i-copy"/></svg>复制当前代码</button>
+      </div>
+      <div class="code-box" id="codeBox"></div>
+    </div>
+  </main>
+</div>
+
+<div class="foot">
+  <b>墨玉 UI · 代码工具箱</b> —— 与《墨玉UI设计系统》同一套设计令牌；所有代码片段均为原生 HTML/CSS/JS，无框架依赖。<br>
+  复制时请把 <code>CSS</code> 片段放入你的样式文件，<code>JS</code> 片段放入脚本；图标使用了内联 SVG，可整段复用。若 <code>navigator.clipboard</code> 在本地文件下不可用，会自动降级为文本框选中复制。
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script>if(!window.echarts){document.write('<script src="https:\/\/cdnjs.cloudflare.com\/ajax\/libs\/echarts\/5.5.1\/echarts.min.js"><\/script>')}</script>
+<script>
+/* ===== 工具 ===== */
+function $(id){return document.getElementById(id)}
+function qsa(sel){return Array.prototype.slice.call(document.querySelectorAll(sel))}
+var toastTimer=null;
+function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show')},2000)}
+function copyText(text){
+  function legacy(){
+    var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');toast('已复制到剪贴板')}catch(e){toast('复制失败，请手动选中复制')}
+    document.body.removeChild(ta);
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){toast('已复制到剪贴板')},legacy)}
+  else{legacy()}
+}
+
+/* ===== 主题 ===== */
+var THEME_DARK=false;
+function applyTheme(dark){
+  THEME_DARK=dark;
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+  $('themeLb').textContent=dark?'亮色':'暗色';
+  qsa('#themeBtn use').forEach(function(u){u.setAttribute('href',dark?'#i-sun':'#i-moon')});
+  renderPreview(current);
+}
+$('themeBtn').onclick=function(){applyTheme(!THEME_DARK)};
+
+/* ===== 公共基础 CSS（注入 iframe 预览） ===== */
+var BASE_CSS=
+':root{'+
+'--paper:#F4F1EA;--paper-2:#ECE7DC;--surface:#FCFBF7;--surface-2:#FFFFFF;'+
+'--ink:#1B2722;--ink-2:#3C4A43;--muted:#6B756E;--faint:#99A29B;'+
+'--hair:rgba(27,39,34,.10);--hair-strong:rgba(27,39,34,.18);'+
+'--brand:#0F6B5C;--brand-strong:#0B5448;--brand-soft:#E2EFEA;--brand-line:rgba(15,107,92,.28);'+
+'--accent:#A5823A;--accent-soft:#F4ECDB;'+
+'--ok:#2E7D4F;--warn:#B07A1D;--danger:#C05A45;--info:#4A6FA5;'+
+'--ok-soft:#E5F1E9;--warn-soft:#F7EDD8;--danger-soft:#F8E9E4;--info-soft:#E7EDF5;'+
+'--sh1:0 1px 2px rgba(27,39,34,.05),0 3px 10px -2px rgba(27,39,34,.08);'+
+'--sh2:0 2px 6px rgba(27,39,34,.06),0 12px 30px -8px rgba(27,39,34,.16);'+
+'--r-s:6px;--r-m:10px;--r-l:14px;'+
+'--t-spring:320ms;--curve-spring:cubic-bezier(.34,1.3,.42,1);'+
+'--font:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;'+
+'}'+
+'[data-theme="dark"]{'+
+'--paper:#131B17;--paper-2:#0F1512;--surface:#1B2621;--surface-2:#22302A;'+
+'--ink:#ECE9E1;--ink-2:#C6CDC6;--muted:#9AA49D;--faint:#6E7A72;'+
+'--hair:rgba(236,233,225,.12);--hair-strong:rgba(236,233,225,.22);'+
+'--brand:#3FAF99;--brand-strong:#57C0AA;--brand-soft:#16322B;--brand-line:rgba(63,175,153,.4);'+
+'--accent:#C9A45C;--accent-soft:#332B17;'+
+'--ok:#5CB87C;--warn:#D2A24A;--danger:#D97B63;--info:#7C9FD1;'+
+'--ok-soft:#16301F;--warn-soft:#362B12;--danger-soft:#3A2118;--info-soft:#1D2940;'+
+'--sh1:0 1px 2px rgba(0,0,0,.3),0 3px 10px -2px rgba(0,0,0,.4);'+
+'--sh2:0 2px 6px rgba(0,0,0,.35),0 12px 30px -8px rgba(0,0,0,.5);'+
+'}'+
+'*{box-sizing:border-box;margin:0;padding:0}'+
+'body{font-family:var(--font);background:var(--paper);color:var(--ink);padding:26px;display:flex;align-items:center;justify-content:center;min-height:100%}'+
+'button{font-family:inherit}';
+
+/* ===== 组件库数据 ===== */
+var LIBRARY=[
+{cat:'操作',icon:'grid',items:[
+  {name:'按钮 · 四种形态',tag:'Actions',desc:'主要/次级/幽灵/危险四层语义 + 小/大尺寸 + 图标 + 加载态；按压 scale(.965) 弹簧归位。',
+   html:'<div style="display:flex;gap:10px;flex-wrap:wrap">\n  <button class="btn primary" type="button">主要按钮</button>\n  <button class="btn secondary" type="button">次级按钮</button>\n  <button class="btn ghost" type="button">幽灵按钮</button>\n  <button class="btn danger" type="button">危险操作</button>\n  <button class="btn primary" type="button" id="loadBtn"><span class="spin" style="display:none"></span><span id="loadTxt">点击加载</span></button>\n</div>',
+   css:'.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:38px;padding:0 18px;border-radius:10px;border:1px solid transparent;font-size:13.5px;font-weight:600;cursor:pointer;transition:transform .15s ease,background .15s ease,border-color .15s ease}\n.btn:active{transform:scale(.965)}\n.btn.primary{background:var(--brand);color:#fff}\n.btn.primary:hover{background:var(--brand-strong)}\n.btn.secondary{background:var(--brand-soft);color:var(--brand-strong);border-color:var(--brand-line)}\n.btn.ghost{background:transparent;color:var(--ink-2);border-color:var(--hair-strong)}\n.btn.ghost:hover{background:var(--surface-2)}\n.btn.danger{background:var(--danger-soft);color:var(--danger)}\n.btn.danger:hover{background:var(--danger);color:#fff}\n.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}\n@keyframes spin{to{transform:rotate(360deg)}}',
+   js:'document.getElementById("loadBtn").addEventListener("click",function(){\n  var b=this,s=b.querySelector(".spin"),t=document.getElementById("loadTxt");\n  b.classList.add("primary");s.style.display="inline-block";t.textContent="加载中";\n  setTimeout(function(){s.style.display="none";t.textContent="加载完成";},1200);\n});'},
+  {name:'分段控件',tag:'Actions',desc:'互斥选项收窄为一段；选中项 surface-2 + sh1 浮起，切换只动状态。',
+   html:'<div class="seg" id="seg">\n  <button type="button" class="on">按日</button>\n  <button type="button">按周</button>\n  <button type="button">按月</button>\n</div>',
+   css:'.seg{display:inline-flex;background:var(--paper-2);border:1px solid var(--hair);border-radius:10px;padding:3px;gap:2px}\n.seg button{border:none;background:transparent;color:var(--muted);font-size:12.5px;font-weight:500;padding:7px 14px;border-radius:8px;cursor:pointer;transition:all .18s ease}\n.seg button.on{background:var(--surface-2);color:var(--ink);box-shadow:var(--sh1);font-weight:600}',
+   js:'document.querySelectorAll("#seg button").forEach(function(b){\n  b.addEventListener("click",function(){\n    document.querySelectorAll("#seg button").forEach(function(x){x.classList.remove("on")});\n    b.classList.add("on");\n  });\n});'},
+  {name:'输入框 · 搜索框',tag:'Actions',desc:'错误态用 --danger 描边 + 提示文字；聚焦光圈 3px 透明环；搜索框图标常驻。',
+   html:'<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">\n  <div class="field">\n    <label>客户名称</label>\n    <input class="input" placeholder="输入客户名称">\n    <span class="hint">必填项，支持模糊搜索</span>\n  </div>\n  <div class="field">\n    <label>订单金额</label>\n    <input class="input err" value="0">\n    <span class="hint err">金额必须大于 0</span>\n  </div>\n  <div class="search">\n    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-3.8-3.8"/></svg>\n    <input class="input" placeholder="搜索订单、客户…">\n  </div>\n</div>',
+   css:'.field{display:flex;flex-direction:column;gap:6px;width:210px}\n.field label{font-size:12.5px;font-weight:600;color:var(--ink-2)}\n.input{height:38px;border:1px solid var(--hair-strong);border-radius:10px;background:var(--surface-2);padding:0 13px;font-size:13.5px;color:var(--ink);font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s}\n.input::placeholder{color:var(--faint)}\n.input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-line)}\n.input.err{border-color:var(--danger)}\n.hint{font-size:11.5px;color:var(--muted)}\n.hint.err{color:var(--danger)}\n.search{position:relative;width:210px}\n.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--faint)}\n.search .input{padding-left:36px}',
+   js:''},
+  {name:'开关 · 复选框 · 单选',tag:'Actions',desc:'开关拇指用 220ms 弹簧曲线滑出；复选钩子 scale 弹入；单选 5.5px 边框。点击热区 ≥44px。',
+   html:'<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start">\n  <label class="switch"><input type="checkbox" checked><span class="track"><span class="thumb"></span></span><span class="lb">开启通知</span></label>\n  <label class="switch"><input type="checkbox"><span class="track"><span class="thumb"></span></span><span class="lb">自动归档</span></label>\n  <div style="display:flex;gap:14px;margin-top:8px">\n    <label class="checkbox"><input type="checkbox" checked><span class="bx"><svg class="ck" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4.5 4.5L19 7"/></svg></span><span class="lb">已勾选</span></label>\n    <label class="radio"><input type="radio" name="rg" checked><span class="bx"></span><span class="lb">A 方案</span></label>\n    <label class="radio"><input type="radio" name="rg"><span class="bx"></span><span class="lb">B 方案</span></label>\n  </div>\n</div>',
+   css:'.switch,.checkbox,.radio{position:relative;display:inline-flex;align-items:center;gap:9px;cursor:pointer;min-height:44px}\n.switch input,.checkbox input,.radio input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}\n.switch .track{width:40px;height:22px;border-radius:999px;background:var(--paper-2);border:1px solid var(--hair-strong);position:relative;flex:none;transition:background .18s ease}\n.switch .thumb{position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:var(--sh1);transition:transform .22s cubic-bezier(.34,1.3,.42,1)}\n.switch input:checked+.track{background:var(--brand);border-color:var(--brand)}\n.switch input:checked+.track .thumb{transform:translateX(18px)}\n.checkbox .bx,.radio .bx{width:20px;height:20px;border:1.6px solid var(--hair-strong);border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none;transition:background .12s,border-color .12s}\n.checkbox input:checked+.bx{background:var(--brand);border-color:var(--brand)}\n.checkbox .ck{opacity:0;transform:scale(.4);transition:all .15s cubic-bezier(.34,1.3,.42,1)}\n.checkbox input:checked+.bx .ck{opacity:1;transform:scale(1)}\n.radio .bx{border-radius:50%}\n.radio input:checked+.bx{border-color:var(--brand);border-width:5.5px}\n.lb{font-size:13px;color:var(--ink-2)}',
+   js:''},
+  {name:'滑块',tag:'Actions',desc:'原生 range + accent-color 美化，数值实时回显（tabular-nums）。',
+   html:'<div style="display:flex;flex-direction:column;gap:14px;width:240px">\n  <div class="slider"><input type="range" min="0" max="100" value="64"><span class="v" id="v1">64%</span></div>\n  <div class="slider"><input type="range" min="0" max="100" value="28"><span class="v" id="v2">28%</span></div>\n</div>',
+   css:'.slider{display:flex;align-items:center;gap:12px}\n.slider input[type=range]{flex:1;accent-color:var(--brand);height:24px;cursor:pointer}\n.slider .v{font-size:12px;color:var(--muted);font-family:monospace;min-width:34px;text-align:right;font-variant-numeric:tabular-nums}',
+   js:'document.querySelectorAll(".slider input").forEach(function(s,i){\n  s.addEventListener("input",function(){document.getElementById("v"+(i+1)).textContent=s.value+"%"});\n});'}
+]},
+{cat:'反馈',icon:'mic',items:[
+  {name:'徽章',tag:'Feedback',desc:'徽章语义与状态色一一对应；dot 形态表示在线/状态。',
+   html:'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">\n  <span class="badge brand">进行中</span>\n  <span class="badge ok">已完成</span>\n  <span class="badge warn">待处理</span>\n  <span class="badge danger">已逾期</span>\n  <span class="badge info">默认</span>\n  <span class="badge accent">精选</span>\n  <span class="badge dot brand">在线</span>\n  <span class="badge">12</span>\n</div>',
+   css:'.badge{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--paper-2);color:var(--muted)}\n.badge.dot::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}\n.badge.brand{background:var(--brand-soft);color:var(--brand-strong)}\n.badge.ok{background:var(--ok-soft);color:var(--ok)}\n.badge.warn{background:var(--warn-soft);color:var(--warn)}\n.badge.danger{background:var(--danger-soft);color:var(--danger)}\n.badge.info{background:var(--info-soft);color:var(--info)}\n.badge.accent{background:var(--accent-soft);color:var(--accent)}',
+   js:''},
+  {name:'标签 · 可关闭',tag:'Feedback',desc:'标签可关闭；移除按钮 hover 转危险色。',
+   html:'<div style="display:flex;gap:8px;flex-wrap:wrap">\n  <span class="tag">墨玉 UI<button type="button" aria-label="移除">✕</button></span>\n  <span class="tag">设计令牌<button type="button" aria-label="移除">✕</button></span>\n  <span class="tag">弹簧动效<button type="button" aria-label="移除">✕</button></span>\n</div>',
+   css:'.tag{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border-radius:8px;font-size:12px;font-weight:500;background:var(--paper-2);color:var(--ink-2);border:1px solid var(--hair)}\n.tag button{border:none;background:none;cursor:pointer;color:var(--faint);font-size:12px;padding:2px 4px;border-radius:5px}\n.tag button:hover{color:var(--danger);background:var(--danger-soft)}',
+   js:'document.querySelectorAll(".tag button").forEach(function(b){\n  b.addEventListener("click",function(){b.parentNode.remove();});\n});'},
+  {name:'提示条 · Alert',tag:'Feedback',desc:'语义色软底 + 同色描边，标题与正文两级。',
+   html:'<div style="display:flex;flex-direction:column;gap:8px;width:320px;max-width:100%">\n  <div class="alert ok"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><div><span class="t">保存成功</span><span class="m">配置已同步到生产环境。</span></div></div>\n  <div class="alert warn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5L22 20H2L12 3.5Z"/></svg><div><span class="t">库存不足</span><span class="m">3 个 SKU 低于安全线，建议补货。</span></div></div>\n  <div class="alert danger"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5L22 20H2L12 3.5Z"/></svg><div><span class="t">同步失败</span><span class="m">接口超时，请稍后重试。</span></div></div>\n  <div class="alert info"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5v.01"/></svg><div><span class="t">系统维护</span><span class="m">本周六 02:00–04:00 例行升级。</span></div></div>\n</div>',
+   css:'.alert{display:flex;gap:10px;align-items:flex-start;border-radius:10px;padding:12px 14px;font-size:13px;border:1px solid transparent}\n.alert .t{font-weight:600;display:block}\n.alert .m{color:var(--muted);font-size:12.5px}\n.alert.ok{background:var(--ok-soft);border-color:rgba(46,125,79,.2);color:var(--ok)}\n.alert.warn{background:var(--warn-soft);border-color:rgba(176,122,29,.2);color:var(--warn)}\n.alert.danger{background:var(--danger-soft);border-color:rgba(192,90,69,.2);color:var(--danger)}\n.alert.info{background:var(--info-soft);border-color:rgba(74,111,165,.2);color:var(--info)}',
+   js:''},
+  {name:'进度条 · 环形',tag:'Feedback',desc:'线性进度条弹簧动画到目标值；环形用于单一指标。',
+   html:'<div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">\n  <div>\n    <div class="progress"><i data-w="72"></i></div>\n    <span class="cap">上传 72%</span>\n  </div>\n  <div>\n    <div class="progress warn"><i data-w="45"></i></div>\n    <span class="cap">配额 45%</span>\n  </div>\n  <svg class="ring" width="46" height="46" viewBox="0 0 46 46">\n    <circle cx="23" cy="23" r="19" fill="none" class="r-bg" stroke-width="5"/>\n    <circle cx="23" cy="23" r="19" fill="none" class="r-fg" stroke-width="5" stroke-dasharray="119.4" stroke-dashoffset="47.8" stroke-linecap="round" transform="rotate(-90 23 23)"/>\n  </svg>\n</div>',
+   css:'.progress{width:210px;height:8px;border-radius:999px;background:var(--paper-2);overflow:hidden}\n.progress i{display:block;height:100%;border-radius:999px;background:var(--brand);width:0;transition:width .5s cubic-bezier(.34,1.3,.42,1)}\n.progress.warn i{background:var(--warn)}\n.cap{font-size:11px;color:var(--faint);margin-top:5px;display:block;font-variant-numeric:tabular-nums}\n.ring .r-bg{stroke:var(--paper-2)}\n.ring .r-fg{stroke:var(--brand)}',
+   js:'setTimeout(function(){\n  document.querySelectorAll(".progress i").forEach(function(bar){\n    bar.style.width=(bar.getAttribute("data-w")||"0")+"%";\n  });\n},200);'},
+  {name:'骨架屏',tag:'Feedback',desc:'渐变流光 1.4s 循环，代替 loading 文案。',
+   html:'<div class="skel">\n  <i></i>\n  <i></i>\n  <i></i>\n</div>',
+   css:'.skel{display:flex;flex-direction:column;gap:9px;width:240px}\n.skel i{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--paper-2) 25%,var(--surface-2) 50%,var(--paper-2) 75%);background-size:200% 100%;animation:sk 1.4s infinite}\n.skel i:nth-child(1){width:64%}.skel i:nth-child(2){width:88%}.skel i:nth-child(3){width:52%}\n@keyframes sk{to{background-position:-200% 0}}',
+   js:''},
+  {name:'Tooltip · Toast',tag:'Feedback',desc:'四方向 Tooltip：墨色底 + 箭头，hover 150ms 淡入；Toast 底部弹簧滑入，2.2s 自动消失。',
+   html:'<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">\n  <span class="tt-wrap"><button class="btn" type="button">上</button><span class="tip top">顶部提示</span></span>\n  <span class="tt-wrap"><button class="btn" type="button">下</button><span class="tip bottom">底部提示</span></span>\n  <span class="tt-wrap"><button class="btn" type="button">左</button><span class="tip left">左侧提示</span></span>\n  <span class="tt-wrap"><button class="btn" type="button">右</button><span class="tip right">右侧提示</span></span>\n  <button class="btn primary" type="button" id="tBtn">弹出 Toast</button>\n</div>\n<div class="toast" id="tBox"></div>',
+   css:'.btn{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 16px;border-radius:10px;border:1px solid var(--hair-strong);background:var(--surface);color:var(--ink-2);font-size:13px;font-weight:600;cursor:pointer}\n.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}\n.tt-wrap{position:relative;display:inline-flex}\n.tip{position:absolute;background:var(--ink);color:var(--paper);font-size:12px;padding:5px 11px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:30;box-shadow:var(--sh2)}\n.tip::after{content:"";position:absolute;border:5px solid transparent}\n.tip.top{bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(3px)}\n.tip.top::after{top:100%;left:50%;transform:translateX(-50%);border-top-color:var(--ink)}\n.tip.bottom{top:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(-3px)}\n.tip.bottom::after{bottom:100%;left:50%;transform:translateX(-50%);border-bottom-color:var(--ink)}\n.tip.left{right:calc(100% + 8px);top:50%;transform:translateY(-50%) translateX(3px)}\n.tip.left::after{left:100%;top:50%;transform:translateY(-50%);border-left-color:var(--ink)}\n.tip.right{left:calc(100% + 8px);top:50%;transform:translateY(-50%) translateX(-3px)}\n.tip.right::after{right:100%;top:50%;transform:translateY(-50%);border-right-color:var(--ink)}\n.tt-wrap:hover .tip{opacity:1}\n.tt-wrap:hover .tip.top,.tt-wrap:hover .tip.bottom{transform:translateX(-50%) translateY(0)}\n.tt-wrap:hover .tip.left,.tt-wrap:hover .tip.right{transform:translateY(-50%) translateX(0)}\n.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);background:var(--ink);color:var(--paper);font-size:13px;padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:all .26s cubic-bezier(.34,1.3,.42,1);z-index:99}\n.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}',
+   js:'document.getElementById("tBtn").addEventListener("click",function(){\n  var t=document.getElementById("tBox");t.textContent="操作成功，配置已保存";t.classList.add("show");\n  clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove("show");},2200);\n});'}
+]},
+{cat:'数据',icon:'chart',items:[
+  {name:'统计卡',tag:'Data',desc:'标签 + 大数字（tabular-nums）+ 环比 + 迷你趋势线，一屏读完「涨没涨」。',
+   html:'<div style="display:flex;gap:18px;flex-wrap:wrap">\n  <div class="stat"><span class="l">本周营收</span><span class="v">¥486,200</span><span class="d up">↑ 12.4%</span><svg class="spark" width="120" height="30" viewBox="0 0 120 30"><polyline points="0,24 16,20 32,22 48,14 64,16 80,9 96,11 120,4" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round"/></svg></div>\n  <div class="stat"><span class="l">活跃用户</span><span class="v">21,842</span><span class="d up">↑ 5.1%</span><svg class="spark" width="120" height="30" viewBox="0 0 120 30"><polyline points="0,20 16,22 32,17 48,19 64,13 80,15 96,8 120,10" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round"/></svg></div>\n  <div class="stat"><span class="l">退款率</span><span class="v">1.9%</span><span class="d down">↓ 0.3pp</span><svg class="spark" width="120" height="30" viewBox="0 0 120 30"><polyline points="0,6 16,8 32,13 48,11 64,16 80,19 96,22 120,24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round"/></svg></div>\n</div>',
+   css:'.stat{display:flex;flex-direction:column;gap:4px;min-width:160px}\n.stat .l{font-size:12px;color:var(--muted)}\n.stat .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}\n.stat .d{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}\n.stat .d.up{color:var(--ok)}\n.stat .d.down{color:var(--danger)}\n.stat .spark{margin-top:2px}',
+   js:''},
+  {name:'数据表格',tag:'Data',desc:'table-layout:fixed + 显式列宽；行 hover 抬次级面，状态用徽章。',
+   html:'<table class="tbl" style="width:560px;max-width:100%">\n  <colgroup><col><col><col><col><col></colgroup>\n  <thead><tr><th>订单号</th><th>客户</th><th>渠道</th><th>金额</th><th>状态</th></tr></thead>\n  <tbody>\n    <tr><td>#SO-001</td><td>杭州云杉科技</td><td>直接访问</td><td class="num">¥ 12,800</td><td><span class="badge ok">已完成</span></td></tr>\n    <tr><td>#SO-002</td><td>上海青禾贸易</td><td>自然搜索</td><td class="num">¥ 8,240</td><td><span class="badge warn">配送中</span></td></tr>\n    <tr><td>#SO-003</td><td>广州南屿传媒</td><td>社媒引流</td><td class="num">¥ 15,600</td><td><span class="badge ok">已完成</span></td></tr>\n    <tr><td>#SO-004</td><td>深圳鲸落电商</td><td>广告投放</td><td class="num">¥ 6,980</td><td><span class="badge danger">待支付</span></td></tr>\n  </tbody>\n</table>',
+   css:'table.tbl{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}\ntable.tbl col:nth-child(1){width:22%}table.tbl col:nth-child(2){width:24%}table.tbl col:nth-child(3){width:16%}table.tbl col:nth-child(4){width:20%}table.tbl col:nth-child(5){width:18%}\ntable.tbl th{text-align:left;font-size:11.5px;color:var(--faint);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--hair);white-space:nowrap}\ntable.tbl td{padding:12px;border-bottom:1px solid var(--hair);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\ntable.tbl td:first-child{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}\ntable.tbl tr:hover td{background:var(--paper-2)}\n.num{font-variant-numeric:tabular-nums}\n.badge{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600}\n.badge.ok{background:var(--ok-soft);color:var(--ok)}\n.badge.warn{background:var(--warn-soft);color:var(--warn)}\n.badge.danger{background:var(--danger-soft);color:var(--danger)}',
+   js:''},
+  {name:'ECharts 折线 + 环形',tag:'Data',desc:'趋势用折线（面积渐变、平滑），构成用环形；颜色取自墨玉站内色板，非默认 10 色轮盘。',
+   html:'<div style="display:flex;gap:14px;flex-wrap:wrap;width:100%">\n  <div id="cLine" style="height:210px;flex:1.3;min-width:260px"></div>\n  <div id="cDonut" style="height:210px;flex:1;min-width:200px"></div>\n</div>',
+   css:'',
+   js:'function loadScript(src,cb){var s=document.createElement("script");s.src=src;s.onload=cb;document.head.appendChild(s);}\nloadScript("https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js",function(){\n  var cs=getComputedStyle(document.documentElement);\n  function v(n){return cs.getPropertyValue(n).trim()}\n  var brand=v("--brand")||"#0F6B5C",soft=v("--brand-soft")||"#E2EFEA",faint=v("--faint")||"#99A29B",grid=v("--paper-2")||"#ECE7DC",hair=v("--hair-strong");\n  var dates=[];for(var i=0;i<30;i++){dates.push("9-"+(i+18>30?i-12:i+18))}\n  var trend=[9.2,10.1,9.6,10.8,11.2,10.5,11.8,12.4,11.9,12.8,13.1,12.6,13.4,14.2,13.7,14.5,15.1,14.8,15.6,16.2,15.7,16.4,17.1,16.6,17.4,18.1,17.6,18.2,18.9,19.4];\n  var c1=echarts.init(document.getElementById("cLine"));\n  c1.setOption({\n    grid:{left:6,right:12,top:16,bottom:4,containLabel:true},\n    xAxis:{type:"category",data:dates,boundaryGap:false,axisLine:{lineStyle:{color:hair}},axisTick:{show:false},axisLabel:{color:faint,fontSize:10,interval:4}},\n    yAxis:{type:"value",axisLine:{show:false},axisTick:{show:false},axisLabel:{color:faint,fontSize:10},splitLine:{lineStyle:{color:grid}}},\n    series:[{type:"line",data:trend,smooth:true,symbol:"circle",symbolSize:4,showSymbol:false,lineStyle:{width:2.4,color:brand},itemStyle:{color:brand},areaStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:soft},{offset:1,color:"transparent"}]}}}]\n  });\n  var c2=echarts.init(document.getElementById("cDonut"));\n  c2.setOption({\n    legend:{bottom:0,itemWidth:9,itemHeight:9,textStyle:{color:faint,fontSize:10},icon:"circle"},\n    series:[{type:"pie",radius:["50%","72%"],center:["50%","42%"],itemStyle:{borderColor:"transparent",borderRadius:4},label:{show:false},data:[{name:"自然搜索",value:42,itemStyle:{color:brand}},{name:"直接访问",value:28,itemStyle:{color:"#B07A1D"}},{name:"社媒引流",value:19,itemStyle:{color:"#4A6FA5"}},{name:"广告投放",value:11,itemStyle:{color:"#C05A45"}}]}]\n  });\n});'}
+]},
+{cat:'导航',icon:'arr',items:[
+  {name:'侧边栏',tag:'Navigation',desc:'图标 + 文字，激活项主色填充；次级功能用细线分组。',
+   html:'<div class="sd"><aside>\n  <button class="sd-item on" type="button">总览</button>\n  <button class="sd-item" type="button">分析</button>\n  <button class="sd-item" type="button">订单</button>\n  <button class="sd-item" type="button">客户</button>\n  <div class="sep"></div>\n  <button class="sd-item" type="button">设置</button>\n</aside><main><b style="font-size:15px">经营驾驶舱</b><p style="font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.8">标准侧边栏示例：左侧导航切换高亮，主区随激活项变化。</p></main></div>',
+   css:'.sd{display:flex;border:1px solid var(--hair);border-radius:14px;overflow:hidden;width:100%;min-height:220px;background:var(--surface)}\n.sd aside{width:150px;flex:none;background:var(--paper-2);padding:12px 10px;border-right:1px solid var(--hair)}\n.sd .sd-item{display:flex;align-items:center;height:38px;padding:0 11px;border-radius:9px;font-size:13px;color:var(--muted);cursor:pointer;border:none;background:none;width:100%;margin-bottom:2px}\n.sd .sd-item:hover{background:var(--surface);color:var(--ink)}\n.sd .sd-item.on{background:var(--brand);color:#fff;font-weight:600}\n.sd .sep{height:1px;background:var(--hair);margin:7px 6px}\n.sd main{flex:1;padding:18px}',
+   js:'document.querySelectorAll(".sd .sd-item").forEach(function(b){\n  b.addEventListener("click",function(){\n    document.querySelectorAll(".sd .sd-item").forEach(function(x){x.classList.remove("on")});\n    b.classList.add("on");\n  });\n});'},
+  {name:'标签页',tag:'Navigation',desc:'下划线 scaleX 0→1 弹簧展开，切换只换面板。',
+   html:'<div>\n  <div class="tabs">\n    <button type="button" class="on" data-t="0">概览</button>\n    <button type="button" data-t="1">订单</button>\n    <button type="button" data-t="2">分析</button>\n  </div>\n  <div class="pane" id="pane">当前：概览 —— 关键指标与趋势在这里。</div>\n</div>',
+   css:'.tabs{display:flex;gap:2px;border-bottom:1px solid var(--hair)}\n.tabs button{border:none;background:none;padding:10px 16px;font-size:13.5px;color:var(--muted);cursor:pointer;font-weight:500;position:relative}\n.tabs button::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;border-radius:2px;background:var(--brand);transform:scaleX(0);transition:transform .25s cubic-bezier(.34,1.3,.42,1)}\n.tabs button.on{color:var(--ink);font-weight:600}\n.tabs button.on::after{transform:scaleX(1)}\n.pane{font-size:13px;color:var(--muted);padding:16px 4px;min-height:52px}',
+   js:'var ps={0:"当前：概览 —— 关键指标与趋势在这里。",1:"当前：订单 —— 列表、看板与优先级提醒。",2:"当前：分析 —— 渠道对比与漏斗拆解。"};\ndocument.querySelectorAll(".tabs button").forEach(function(b){\n  b.addEventListener("click",function(){\n    document.querySelectorAll(".tabs button").forEach(function(x){x.classList.remove("on")});\n    b.classList.add("on");document.getElementById("pane").textContent=ps[b.getAttribute("data-t")];\n  });\n});'},
+  {name:'面包屑 · 分页',tag:'Navigation',desc:'面包屑层级清晰；分页有 active 态，前后翻页实时反馈。',
+   html:'<div style="display:flex;flex-direction:column;gap:16px;align-items:flex-start">\n  <nav class="crumb"><a href="#">工作台</a><span>/</span><a href="#">订单管理</a><span>/</span><span class="cur">订单详情</span></nav>\n  <div class="pager">\n    <button type="button" disabled>‹</button>\n    <button type="button" class="on">1</button>\n    <button type="button">2</button>\n    <button type="button">3</button>\n    <span>…</span>\n    <button type="button">8</button>\n    <button type="button">›</button>\n  </div>\n</div>',
+   css:'.crumb{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}\n.crumb a{color:var(--muted);text-decoration:none}\n.crumb a:hover{color:var(--brand)}\n.crumb .cur{color:var(--ink);font-weight:600}\n.crumb span:not(.cur){color:var(--faint)}\n.pager{display:inline-flex;align-items:center;gap:4px}\n.pager button{width:34px;height:34px;border-radius:9px;border:1px solid var(--hair);background:var(--surface);color:var(--ink-2);font-size:12.5px;cursor:pointer;font-variant-numeric:tabular-nums}\n.pager button:hover:not(:disabled){border-color:var(--brand-line);color:var(--brand)}\n.pager button.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}\n.pager button:disabled{opacity:.4;cursor:not-allowed}\n.pager span{color:var(--faint);padding:0 4px}',
+   js:'document.querySelectorAll(".pager button").forEach(function(b){\n  b.addEventListener("click",function(){\n    if(b.disabled)return;\n    document.querySelectorAll(".pager button").forEach(function(x){x.classList.remove("on")});\n    b.classList.add("on");\n  });\n});'},
+  {name:'下拉菜单',tag:'Navigation',desc:'弹簧 scale .98→1 弹出；点外部自动收起；危险项分隔。',
+   html:'<div class="dd">\n  <button class="dd-btn" type="button" id="ddBtn">操作 ▾</button>\n  <div class="dd-menu" id="ddMenu">\n    <button type="button">复制链接</button>\n    <button type="button">重命名</button>\n    <button type="button">导出数据</button>\n    <div class="sep"></div>\n    <button type="button" class="danger2">删除</button>\n  </div>\n</div>',
+   css:'.dd{position:relative;display:inline-block}\n.dd-btn{height:34px;padding:0 16px;border-radius:10px;border:1px solid var(--hair-strong);background:var(--surface);color:var(--ink-2);font-size:13px;font-weight:600;cursor:pointer}\n.dd-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:180px;background:var(--surface-2);border:1px solid var(--hair);border-radius:12px;box-shadow:var(--sh2);padding:6px;z-index:40;opacity:0;transform:translateY(-6px) scale(.98);pointer-events:none;transition:all .18s cubic-bezier(.34,1.3,.42,1)}\n.dd-menu.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}\n.dd-menu button{display:block;width:100%;padding:9px 11px;border-radius:8px;border:none;background:none;font-size:13px;color:var(--ink-2);cursor:pointer;text-align:left}\n.dd-menu button:hover{background:var(--paper-2);color:var(--ink)}\n.dd-menu .sep{height:1px;background:var(--hair);margin:5px 4px}\n.dd-menu .danger2{color:var(--danger)}',
+   js:'var menu=document.getElementById("ddMenu"),btn=document.getElementById("ddBtn"),dd=btn.parentNode;\nbtn.addEventListener("click",function(e){e.stopPropagation();menu.classList.toggle("open");});\ndocument.addEventListener("click",function(e){if(!dd.contains(e.target)){menu.classList.remove("open");}});\ndocument.querySelectorAll("#ddMenu button").forEach(function(b){b.addEventListener("click",function(){menu.classList.remove("open");});});'},
+  {name:'头像 · 卡片 · 列表',tag:'Navigation',desc:'头像带在线状态点；卡片头/体/脚三段；列表行可点击，右侧箭头。',
+   html:'<div style="display:flex;flex-direction:column;gap:16px;width:340px;max-width:100%">\n  <div style="display:flex;gap:10px;align-items:center">\n    <span class="avatar" style="background:var(--brand)">林</span>\n    <span class="avatar" style="background:var(--accent)">陈</span>\n    <span class="avatar off" style="background:var(--info)">周</span>\n    <div><div style="font-size:13px;font-weight:600">林晓晨 <span class="badge ok">在线</span></div><div style="font-size:12px;color:var(--faint)">产品设计组</div></div>\n  </div>\n  <div class="card"><div class="cd-head">月度经营报告 <span class="badge brand">新</span></div><div class="cd-body">营收环比 +12.4%，客单价回升，退款率小幅下降。完整口径见附表。</div><div class="cd-foot">更新于 10:24 · 含 3 个数据源</div></div>\n  <div class="list">\n    <div class="li"><span class="avatar" style="background:var(--brand)">云</span><div><div class="t">杭州云杉科技</div><div class="s">本周订单 12 · 金额 ¥128,000</div></div><span class="arr">›</span></div>\n    <div class="li"><span class="avatar" style="background:var(--accent)">青</span><div><div class="t">上海青禾贸易</div><div class="s">本周订单 8 · 金额 ¥64,200</div></div><span class="arr">›</span></div>\n  </div>\n</div>',
+   css:'.avatar{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;position:relative}\n.avatar::after{content:"";position:absolute;right:0;bottom:0;width:9px;height:9px;border-radius:50%;background:var(--ok);border:2px solid var(--surface)}\n.avatar.off::after{background:var(--faint)}\n.badge{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600}\n.badge.ok{background:var(--ok-soft);color:var(--ok)}\n.badge.brand{background:var(--brand-soft);color:var(--brand-strong)}\n.card{border:1px solid var(--hair);border-radius:14px;background:var(--surface);overflow:hidden}\n.cd-head{padding:13px 16px;font-weight:600;font-size:14px;border-bottom:1px solid var(--hair);display:flex;justify-content:space-between;align-items:center}\n.cd-body{padding:14px 16px;font-size:13px;color:var(--muted)}\n.cd-foot{padding:11px 16px;border-top:1px solid var(--hair);background:var(--paper-2);font-size:12px;color:var(--faint)}\n.list{border:1px solid var(--hair);border-radius:14px;overflow:hidden}\n.li{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--hair)}\n.li:last-child{border-bottom:none}\n.li .t{font-size:13.5px;font-weight:500;color:var(--ink)}\n.li .s{font-size:12px;color:var(--faint)}\n.li .arr{margin-left:auto;color:var(--faint);font-size:16px}',
+   js:'document.querySelectorAll(".li").forEach(function(li){\n  li.style.cursor="pointer";\n  li.addEventListener("click",function(){li.style.background="var(--paper-2)";setTimeout(function(){li.style.background="";},300);});\n});'}
+]}
+];
+
+/* ===== 渲染 ===== */
+var current=null,currentTab='html';
+function renderSide(){
+  var box=$('side');box.innerHTML='';
+  LIBRARY.forEach(function(g,gi){
+    var h='<h3>'+g.cat+'</h3><div class="item-list">';
+    g.items.forEach(function(it,ii){
+      h+='<button class="item-btn" data-g="'+gi+'" data-i="'+ii+'" type="button">'+it.name+'</button>';
+    });
+    h+='</div>';
+    box.insertAdjacentHTML('beforeend',h);
+  });
+  qsa('.item-btn').forEach(function(b){
+    b.onclick=function(){
+      qsa('.item-btn').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');
+      var g=LIBRARY[parseInt(b.getAttribute('data-g'))],i=parseInt(b.getAttribute('data-i'));
+      select(g.items[i]);
+    };
+  });
+}
+function select(item){
+  current=item;
+  $('vTitle').textContent=item.name;
+  $('vTag').textContent=item.tag||'';
+  $('vDesc').textContent=item.desc;
+  renderPreview(item);
+  renderCode();
+}
+function renderPreview(item){
+  if(!item)return;
+  var dark=THEME_DARK?' data-theme="dark"':'';
+  var js=item.js?'<script>'+item.js.replace(/<\/script>/g,'<\\/script>')+'<'+'/script>':'';
+  var doc='<!DOCTYPE html><html lang="zh-CN"'+dark+'><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>'+BASE_CSS+item.css+'</style></head><body>'+item.html+js+'</body></html>';
+  $('vFrame').src='data:text/html;charset=utf-8,'+encodeURIComponent(doc);
+}
+function renderCode(){
+  var item=current;if(!item)return;
+  $('lnHtml').textContent=item.html?(' · '+item.html.length+'B'):'';
+  $('lnCss').textContent=item.css?(' · '+item.css.length+'B'):'';
+  $('lnJs').textContent=item.js?(' · '+item.js.length+'B'):'';
+  showTab(currentTab);
+}
+function showTab(tab){
+  currentTab=tab;
+  var item=current;if(!item)return;
+  qsa('.code-tab').forEach(function(x){x.classList.remove('on')});
+  $('tab'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('on');
+  var src=item[tab]||'/* 该条目无需 '+tab.toUpperCase()+' */';
+  $('codeBox').textContent=src;
+  paint();
+}
+qsa('.code-tab').forEach(function(b){
+  b.onclick=function(){showTab(b.id.replace('tab','').toLowerCase())};
+});
+$('copyBtn').onclick=function(){
+  if(!current){toast('请先选择组件');return}
+  var item=current,parts=[];
+  if(item.html)parts.push('<!-- '+item.name+' · HTML -->\n'+item.html);
+  if(item.css)parts.push('/* '+item.name+' · CSS */\n'+item.css);
+  if(item.js)parts.push('// '+item.name+' · JS\n'+item.js);
+  copyText(parts.join('\n\n'));
+};
+
+/* ===== 代码高亮（极简） ===== */
+function highlight(src){
+  var esc=src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  esc=esc.replace(/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)/g,'<span class="c">$1</span>');
+  esc=esc.replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g,'<span class="s">$1</span>');
+  esc=esc.replace(/\b(var|let|const|function|return|if|else|for|while|new|typeof|class)\b/g,'<span class="k">$1</span>');
+  esc=esc.replace(/(#[0-9a-fA-F]{3,8}\b|\b\d+(?:\.\d+)?(?:px|ms|s|%|em|rem)?\b)/g,'<span class="n">$1</span>');
+  return esc;
+}
+var highlightTimer=null;
+function paint(){
+  clearTimeout(highlightTimer);
+  highlightTimer=setTimeout(function(){
+    var src=$('codeBox').textContent;
+    $('codeBox').innerHTML=highlight(src);
+  },60);
+}
+
+/* ===== 初始化 ===== */
+renderSide();
+qsa('.item-btn')[0].classList.add('on');
+select(LIBRARY[0].items[0]);
+applyTheme(false);
+</script>
+</body>
+</html>
